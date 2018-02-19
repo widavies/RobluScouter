@@ -1,0 +1,40 @@
+<resources>
+    <string name="app_name">RobluScouter</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="no_time">0.0s</string>
+    <string name="set_line_width">Set line width</string>
+    <string name="open">Open</string>
+    <string-array name="alliances">
+        <item>Red Alliance</item>
+        <item>Blue Alliance</item>
+    </string-array>
+    <string-array name="auto_checkouts">
+        <item>Disabled</item>
+        <item>Red Device 1</item>
+        <item>Red Device 2</item>
+        <item>Red Device 3</item>
+        <item>Blue Device 1</item>
+        <item>Blue Device 2</item>
+        <item>Blue Device 3</item>
+        <item>Pit</item>
+    </string-array>
+    <string name="delete_image">Delete image</string>
+    <string name="edit_image">Edit image</string>
+    <string name="save_image">Save image to device</string>
+    <string name="undo">Undo</string>
+    <string name="mode">Mode</string>
+    <string name="save">Save</string>
+    <!-- Drawing -->
+    <string name="pen">Pen</string>
+    <string name="line">Line</string>
+    <string name="rectangle">Rectangle</string>
+    <string name="circle">Circle</string>
+    <string name="ellipse">Ellipse</string>
+    <string name="quad">Quad</string>
+    <string name="line_width">Line width</string>
+    <string name="line_color">Line color</string>
+
+    <string name="not_observed_yet">Not observed yet</string>
+
+</resources>

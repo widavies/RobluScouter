@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/delete_image"
+        android:icon="@drawable/delete"
+        app:showAsAction="ifRoom"
+        android:title="@string/delete_image" />
+    <item
+        android:id="@+id/edit"
+        android:icon="@drawable/edit_large"
+        app:showAsAction="ifRoom"
+        android:title="@string/edit_image" />
+    <item
+        android:id="@+id/save_to_device"
+        android:icon="@drawable/save"
+        app:showAsAction="ifRoom"
+        android:title="@string/save_image" />
+</menu>

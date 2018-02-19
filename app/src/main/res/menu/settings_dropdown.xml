@@ -1,0 +1,34 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/show_pit"
+        app:showAsAction="never"
+        android:checkable="true"
+        android:title="Show pit checkouts"/>
+    <item
+        android:id="@+id/show_completed"
+        app:showAsAction="never"
+        android:checkable="true"
+        android:title="Show completed"/>
+    <item
+        android:id="@+id/show_checked_out"
+        app:showAsAction="never"
+        android:checkable="true"
+        android:title="Show checked out"/>
+    <item
+        android:id="@+id/mymatches"
+        app:showAsAction="never"
+        android:title="My matches"/>
+    <item
+        android:id="@+id/ping"
+        app:showAsAction="never"
+        android:title="Ping server"/>
+    <item
+        android:id="@+id/bluetooth"
+        app:showAsAction="never"
+        android:title="Sync (Bluetooth)" />
+    <item
+        android:id="@+id/settings"
+        app:showAsAction="never"
+        android:title="App settings"/>
+</menu>

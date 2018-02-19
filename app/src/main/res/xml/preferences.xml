@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent">
+    <PreferenceCategory android:title="Roblu Cloud">
+        <EditTextPreference
+            android:title="Roblu Cloud username"
+            android:key="username"
+            android:summary="Set your name, this will appear on everyone's devices next to scouting data you've edited."/>
+        <EditTextPreference
+            android:title="Server IP"
+            android:key="server_ip"
+            android:summary="Set the IP address if you're using a custom server. Leave blank for the official Roblu Cloud server."/>
+        <EditTextPreference
+            android:title="Team code"
+            android:key="team"
+            android:summary="Enter team code for syncing"/>
+        <ListPreference
+            android:title="Auto checkout"
+            android:entries="@array/auto_checkouts"
+            android:entryValues="@array/auto_checkouts"
+            android:key="auto_checkouts"
+            android:summary="Setup this device to automatically checkout certain assignments. This option is for teams using a strict six scouting device setup."/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Bluetooth">
+        <Preference
+            android:title="Setup device"
+            android:key="bt_devices"
+            android:summary="This option will search for nearby Bluetooth devices and allow you to add devices to the auto-connect list."/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="About">
+        <Preference
+            android:title="About"
+            android:key="about"
+            android:summary="External library information"/>
+        <Preference
+            android:title="Privacy and terms"
+            android:key="privacy"
+            android:summary="View troubleshooting, console commands, how Roblu handles your data, and the terms of use."/>
+    </PreferenceCategory>
+</PreferenceScreen>

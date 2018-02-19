@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <string name="define_easy"></string>
+    <string name="library_easy_author">Google</string>
+    <string name="library_easy_libraryName">EasyPermissions</string>
+    <string name="library_easy_libraryDescription">Simplify Android M system permissions.</string>
+    <string name="library_easy_licenseId">apache_2_0</string>
+    <string name="library_easy_libraryWebsite">https://github.com/googlesamples/easypermissions/</string>
+
+    <string name="define_image"></string>
+    <string name="library_image_author">Etienne Lawlor</string>
+    <string name="library_image_libraryName">ImageGallery</string>
+    <string name="library_image_libraryDescription">A material design gallery used to host an array of images. This library was modified.</string>
+    <string name="library_image_licenseId">apache_2_0</string>
+    <string name="library_image_libraryWebsite">https://github.com/lawloretienne/ImageGallery</string>
+
+	<string name="define_jackson"></string>
+    <string name="library_jackson_author">FasterXML</string>
+    <string name="library_jackson_libraryName">Jackson</string>
+    <string name="library_jackson_libraryDescription">The best Java JSON and data processing library.</string>
+    <string name="library_jackson_licenseId">apache_2_0</string>
+    <string name="library_jackson_libraryWebsite">https://github.com/FasterXML/jackson</string>
+
+	
+    <string name="define_lombok"></string>
+    <string name="library_lombok_author">Reinier Zwitserloot</string>
+    <string name="library_lombok_libraryName">Lombok</string>
+    <string name="library_lombok_libraryDescription">Very spicy additions to the Java programming language.</string>
+    <string name="library_lombok_licenseId">MIT</string>
+    <string name="library_lombok_libraryWebsite">https://projectlombok.org/</string>
+
+</resources>
