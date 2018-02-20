@@ -1,14 +1,29 @@
 package com.cpjd.robluscouter.sync.bluetooth;
 
+import android.app.ProgressDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
+import com.cpjd.robluscouter.io.IO;
+import com.cpjd.robluscouter.models.RCheckout;
+import com.cpjd.robluscouter.models.RCloudSettings;
+import com.cpjd.robluscouter.models.RForm;
 import com.cpjd.robluscouter.models.RSettings;
+import com.cpjd.robluscouter.models.RTab;
+import com.cpjd.robluscouter.models.RUI;
+import com.cpjd.robluscouter.notifications.Notify;
+import com.cpjd.robluscouter.sync.cloud.AutoCheckoutTask;
+import com.cpjd.robluscouter.utils.HandoffStatus;
+import com.cpjd.robluscouter.utils.Utils;
 
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.json.simple.JSONArray;
+import org.json.simple.parser.JSONParser;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 /**
  * Manages a Bluetooth connection with the server and sending data to it.
@@ -85,13 +100,18 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
 
     private RSettings settings;
 
+    private ProgressDialog pd;
+
     /**
      * Creates a BTConnect object for syncing to a Bluetooth device
      * @param bluetooth {@link #bluetooth}
      */
-    public BTConnect(RSettings settings, Bluetooth bluetooth) {
+    public BTConnect(ProgressDialog pd, RSettings settings, Bluetooth bluetooth) {
+        this.pd = pd;
         this.bluetooth = bluetooth;
         this.settings = settings;
+
+        this.bluetooth.setListener(this);
     }
 
     /**
@@ -99,6 +119,13 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
      */
     @Override
     public void run() {
+        if(bluetooth.isEnabled()) begin();
+        else bluetooth.enable();
+
+    }
+
+    private void begin() {
+
         /*
          * First, load dependencies
          */
@@ -109,13 +136,11 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
             return;
         }
 
-        if(!bluetooth.isEnabled()) {
-            bluetooth.enable();
-        }
-
         //bluetooth.setCommunicationCallback(this); // tell the @Override methods in this class to listen to this Bluetooth object
 
-        if(!connectToNextDevice()) listener.errorOccurred("No Bluetooth servers were found to connect to.");
+        if(!connectToNextDevice()) {
+            if(listener != null) listener.errorOccurred("No Bluetooth servers were found to connect to.");
+        }
     }
 
     /**
@@ -125,7 +150,7 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
     private boolean connectToNextDevice() {
         if(index >= bluetoothServerMACs.size()) return false;
         Log.d("RSBS", "Attempting to connect to device: "+bluetoothServerMACs.get(index));
-       // bluetooth.connectToAddress(bluetoothServerMACs.get(index));
+        bluetooth.connectToDevice(bluetoothServerMACs.get(index));
         index++;
         return true;
     }
@@ -137,17 +162,118 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
      * @see com.cpjd.robluscouter.sync.cloud.Service
      */
     private void transfer() {
-        bluetooth.send("Hello from Roblu Scouter!\n", "dskl");
+        bluetooth.send("isActive", "noParams");
+
+        // Send completed
+        IO io = new IO(bluetooth.getActivity());
+        ArrayList<RCheckout> checkouts = io.loadPendingCheckouts();
+        ArrayList<RCheckout> toUpload = new ArrayList<>();
+        for(RCheckout checkout : checkouts) {
+            if(checkout.getStatus() == HandoffStatus.COMPLETED && checkout.getTeam().getLastEdit() > 0) {
+                for(RTab t : checkout.getTeam().getTabs()) {
+                    LinkedHashMap<String, Long> edits = t.getEdits();
+                    if(edits == null) edits = new LinkedHashMap<>();
+                    edits.put(settings.getName(), System.currentTimeMillis());
+                    t.setEdits(edits);
+                }
+            }
+
+            if(checkout.getStatus() == HandoffStatus.COMPLETED) {
+                toUpload.add(checkout);
+            }
+
+            try {
+                bluetooth.send("SCOUTING_DATA", mapper.writeValueAsString(toUpload));
+                Notify.notifyNoAction(bluetooth.getActivity(), "Sent checkouts successfully", "Successfully sent "+checkouts.size()+" checkouts to target device over Bluetooth.");
+            } catch(Exception e) {
+                Log.d("RSBS", "Failed to send completed checkouts.");
+            }
+        }
+
+        bluetooth.send("requestForm", "noParams");
+        bluetooth.send("requestUI", "noParams");
+        bluetooth.send("requestCheckouts", "noParams");
+        bluetooth.send("requestNumber", "noParams");
+        bluetooth.send("requestEventName", "noParams");
+        bluetooth.send("DONE", "noParams");
     }
 
     @Override
     public void messageReceived(String header, String message) {
+        IO io = new IO(bluetooth.getActivity());
 
+        Log.d("RSBS", "Message received: "+header+", "+message);
+
+        if(header.equals("FORM")) {
+            try {
+                RForm form = mapper.readValue(message, RForm.class);
+                io.saveForm(form);
+            } catch(Exception e) {
+                Log.d("RSBS", "Failed to deserialized RForm from Bluetooth.");
+            }
+        }
+        else if(header.equals("UI")) {
+            try {
+                RUI ui = mapper.readValue(message, RUI.class);
+                settings.setRui(ui);
+                io.saveSettings(settings);
+            } catch(Exception e) {
+                Log.d("RSBS", "Failed to deserialized UI from Bluetooth.");
+            }
+        }
+        else if(header.equals("CHECKOUTS")) {
+            try {
+                JSONParser parser = new JSONParser();
+                JSONArray array = (JSONArray)parser.parse(message);
+                ArrayList<RCheckout> refList = new ArrayList<>();
+                for(int i = 0; i < array.size(); i++) {
+                    String s = array.get(i).toString();
+                    RCheckout checkout = mapper.readValue(s, RCheckout.class);
+                    refList.add(checkout);
+                    io.saveCheckout(checkout);
+                }
+
+                /*
+                 * Run the auto-assignment checkout task
+                 */
+                new AutoCheckoutTask(null, io, settings, refList).start();
+
+                Utils.requestUIRefresh(bluetooth.getActivity(), false, true);
+                Notify.notifyNoAction(bluetooth.getActivity(), "Successfully pulled "+refList.size()+" checkouts.", "Roblu Scouter successfully downloaded "+refList.size()+" checkouts from" +
+                        " the server at "+Utils.convertTime(System.currentTimeMillis()));
+            } catch(Exception e) {
+                Log.d("RSBS", "Failed to process checkouts received over Bluetooth.");
+            }
+        }
+        else if(header.equals("NUMBER")) {
+            RCloudSettings cloudSettings = io.loadCloudSettings();
+            cloudSettings.setTeamNumber(Integer.parseInt(message));
+            io.saveCloudSettings(cloudSettings);
+        }
+        else if(header.equals("EVENT_NAME")) {
+            RCloudSettings cloudSettings = io.loadCloudSettings();
+            cloudSettings.setEventName(message);
+            io.saveCloudSettings(cloudSettings);
+        }
+        else if(header.equals("ACTIVE")) {
+            if(!Boolean.parseBoolean(message)) {
+                // Stop the thread
+                interrupt();
+                pd.dismiss();
+            }
+        }
+        else if(header.equals("DONE")) {
+            if(!connectToNextDevice()) {
+                pd.dismiss();
+            }
+        }
     }
 
     @Override
-    public void deviceConnected() {
+    public void deviceConnected(BluetoothDevice device) {
+        Log.d("RSBS", "Connected to "+device.getName());
 
+        transfer();
     }
 
     @Override
@@ -157,12 +283,14 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
 
     @Override
     public void errorOccurred(String message) {
-
+        Log.d("RSBS", "Error occurred: "+message);
     }
 
     @Override
     public void stateChanged(int state) {
-
+        if(state == BluetoothAdapter.STATE_ON) {
+            begin();
+        }
     }
 
     @Override

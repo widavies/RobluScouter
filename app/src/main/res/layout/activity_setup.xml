@@ -181,7 +181,7 @@
                     android:padding="16dp"
                     android:paddingLeft="10dp"
                     android:paddingRight="10dp"
-                    android:text="Roblu requires several permissions to work correctly. Please accept the dialog that appears after clicking next. You may wonder why coarse location is required, this is required for Bluetooth device scanning. Roblu does not store or process your location."
+                    android:text="@string/requires_permissions"
                     android:textSize="20sp" />
             </RelativeLayout>
 
@@ -203,72 +203,6 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
                         android:text="Next"
-                        android:textColor="#FFFFFF"
-                        android:textAllCaps="true"
-                        android:textSize="16sp" />
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:contentDescription="Right arrow"
-                        android:src="@drawable/right" />
-                </LinearLayout>
-            </RelativeLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/cloud_sign_in"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-            <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_weight="1">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true"
-                    android:layout_marginBottom="2dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
-                    android:layout_marginTop="16dp"
-                    android:gravity="center_horizontal"
-                    android:text="Sign-in to Roblu Cloud"
-                    android:textSize="35sp" />
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentBottom="true"
-                    android:gravity="center_horizontal"
-                    android:padding="16dp"
-                    android:paddingLeft="10dp"
-                    android:paddingRight="10dp"
-                    android:text="Roblu Scouter requires signing in to a Google Account for cloud functionality."
-                    android:textSize="20sp" />
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="@color/colorPrimary"
-                android:minHeight="56dp">
-
-                <LinearLayout
-                    android:id="@+id/signin_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:text="Sign in"
                         android:textColor="#FFFFFF"
                         android:textAllCaps="true"
                         android:textSize="16sp" />
@@ -316,7 +250,7 @@
                     android:padding="16dp"
                     android:paddingLeft="10dp"
                     android:paddingRight="10dp"
-                    android:text="Welcome to Roblu Scouter V3. Not all features are complete yet, but look for them in coming updates. For now, explore the new version!"
+                    android:text="Welcome to Roblu Scouter V4"
                     android:textSize="20sp" />
 
             </RelativeLayout>

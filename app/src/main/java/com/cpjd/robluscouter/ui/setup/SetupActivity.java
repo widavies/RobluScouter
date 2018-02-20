@@ -30,7 +30,6 @@ public class SetupActivity extends FragmentActivity implements View.OnClickListe
         pager = findViewById(R.id.view_pager);
         View welcomeNextButton = findViewById(R.id.welcome_next_page);
         View bluetoothNextButton = findViewById(R.id.bluetooth_next_page);
-        View signInButton = findViewById(R.id.signin_button);
         View permsNext = findViewById(R.id.permissions_next_page);
         View finished = findViewById(R.id.finished_next);
         pager.setOffscreenPageLimit(5);
@@ -39,7 +38,6 @@ public class SetupActivity extends FragmentActivity implements View.OnClickListe
         welcomeNextButton.setOnClickListener(this);
         bluetoothNextButton.setOnClickListener(this);
         permsNext.setOnClickListener(this);
-        signInButton.setOnClickListener(this);
         finished.setOnClickListener(this);
     }
 
@@ -65,9 +63,6 @@ public class SetupActivity extends FragmentActivity implements View.OnClickListe
                         Manifest.permission.ACCESS_COARSE_LOCATION
                 };
                 ActivityCompat.requestPermissions(this, perms, 0);
-                break;
-            case R.id.signin_button:
-                pager.goToNextPage();
                 break;
             case R.id.finished_next:
                 setupFinished();

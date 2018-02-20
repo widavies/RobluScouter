@@ -27,6 +27,15 @@
             android:title="Setup device"
             android:key="bt_devices"
             android:summary="This option will search for nearby Bluetooth devices and allow you to add devices to the auto-connect list."/>
+        <CheckBoxPreference
+            android:title="I plan on ONLY using Bluetooth"
+            android:key="bt_only"
+            android:summary="If your team is ONLY using Bluetooth for syncing, and NOT Roblu Cloud, select this option (QR code syncing doesn't matter for this).">
+        </CheckBoxPreference>
+        <Preference
+            android:title="Clear sync list"
+            android:key="sync_list"
+            />
     </PreferenceCategory>
     <PreferenceCategory android:title="About">
         <Preference

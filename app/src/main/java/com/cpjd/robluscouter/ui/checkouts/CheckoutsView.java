@@ -1,5 +1,6 @@
 package com.cpjd.robluscouter.ui.checkouts;
 
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -72,6 +73,8 @@ public class CheckoutsView extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.checkouts_view);
+
+        bluetooth = new Bluetooth(CheckoutsView.this);
 
         // Initialize startup requirements
         Utils.initWidth(this); // sets width for UI, needed by RMetricToUI
@@ -166,7 +169,10 @@ public class CheckoutsView extends AppCompatActivity {
                 startActivityForResult(new Intent(this, MyMatches.class), Constants.GENERAL);
                 break;
             case R.id.bluetooth:
-                new BTConnect(settings, bluetooth).start();
+                ProgressDialog pd = ProgressDialog.show(CheckoutsView.this, "Syncing...", "Attempting to connect to sync list devices...");
+                pd.setCancelable(true);
+                pd.show();
+                new BTConnect(pd, settings, bluetooth).start();
                 break;
             case R.id.ping:
                 StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitNetwork().build();
@@ -248,4 +254,11 @@ public class CheckoutsView extends AppCompatActivity {
             if(getSupportActionBar() != null) getSupportActionBar().setTitle("Roblu Scouter" + device);
         }
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        bluetooth.onDestroy();
+    }
+
 }

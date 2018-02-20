@@ -204,10 +204,9 @@ public class ImageGalleryActivity extends AppCompatActivity implements ImageGall
             /*
              * Convert the image into a byte[] and save it to the gallery
              */
-
             // Convert the bitmap to a byte array
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 30, stream);
             byte[] array = stream.toByteArray();
 
             // save the ID to the gallery

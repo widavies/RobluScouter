@@ -14,6 +14,8 @@ public class Constants {
     public static final int IMAGE_EDITED = getNum();
     public static final int IMAGE_DELETED = getNum();
 
+    public static final int FIELD_DIAGRAM_EDITED = getNum();
+
     /*
      * RecyclerViewAdapter mode constants
      */

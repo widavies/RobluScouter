@@ -25,8 +25,6 @@ import com.cpjd.robluscouter.ui.dialogs.FastDialogBuilder;
 
 import java.util.ArrayList;
 
-import lombok.Data;
-
 /**
  * BTDeviceSelector manages first time setup for a Bluetooth connection.
  * The scouter can select as many Bluetooth devices as they want, and when
@@ -49,7 +47,7 @@ public class BTDeviceSelector extends AppCompatActivity implements Bluetooth.Blu
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bt_device_selector);
 
-        bluetooth = new Bluetooth(BTDeviceSelector.this, false);
+        bluetooth = new Bluetooth(BTDeviceSelector.this);
         bluetooth.setListener(this);
         bluetooth.enable();
         bluetooth.startScanning();
@@ -76,7 +74,7 @@ public class BTDeviceSelector extends AppCompatActivity implements Bluetooth.Blu
     @Override
     public void deviceDiscovered(BluetoothDevice device) {
         Log.d("RSBS", "Found device: "+device.getName());
-        adapter.addDevice(new RDevice(device.getName(), device.getAddress()));
+        adapter.addDevice(device);
     }
 
     @Override
@@ -85,7 +83,7 @@ public class BTDeviceSelector extends AppCompatActivity implements Bluetooth.Blu
     }
 
     @Override
-    public void deviceConnected() {
+    public void deviceConnected(BluetoothDevice device) {
 
     }
 
@@ -111,7 +109,7 @@ public class BTDeviceSelector extends AppCompatActivity implements Bluetooth.Blu
 
     private class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHolder> {
         private final Context context;
-        private ArrayList<RDevice> devices;
+        private ArrayList<BluetoothDevice> devices;
 
         /**
          * User color preferences
@@ -124,7 +122,7 @@ public class BTDeviceSelector extends AppCompatActivity implements Bluetooth.Blu
             rui = new IO(context).loadSettings().getRui();
         }
 
-        public void addDevice(RDevice device) {
+        public void addDevice(BluetoothDevice device) {
             devices.add(device);
             notifyItemInserted(devices.size() - 1);
         }
@@ -137,20 +135,24 @@ public class BTDeviceSelector extends AppCompatActivity implements Bluetooth.Blu
                 @Override
                 public void onClick(View v) {
                     // Save the MAC address
-                    RDevice device = devices.get(recyclerView.getChildLayoutPosition(v));
+                    BluetoothDevice device = devices.get(recyclerView.getChildLayoutPosition(v));
+
+                    // Attempt pairing
+                    bluetooth.pair(device);
+
                     RSettings settings = new IO(getApplicationContext()).loadSettings();
                     ArrayList<String> macs = settings.getBluetoothServerMACs();
                     if(macs == null) macs = new ArrayList<>();
                     // Check to make sure the MAC address hasn't already been added
                     for(String s : macs) {
-                        if(s.equals(device.getMAC())) {
+                        if(s.equals(device.getAddress())) {
                             Toast.makeText(getApplicationContext(), "This device is already on your sync list.", Toast.LENGTH_LONG).show();
                             return;
                         }
                     }
 
 
-                    macs.add(device.getMAC());
+                    macs.add(device.getAddress());
                     settings.setBluetoothServerMACs(macs);
                     new IO(getApplicationContext()).saveSettings(settings);
 
@@ -187,9 +189,9 @@ public class BTDeviceSelector extends AppCompatActivity implements Bluetooth.Blu
                 subtitle = view.findViewById(R.id.subtitle);
             }
 
-            void bindDevice(RDevice device) {
+            void bindDevice(BluetoothDevice device) {
                 this.title.setText(device.getName());
-                this.subtitle.setText(device.getMAC());
+                this.subtitle.setText(device.getAddress());
 
                 if(rui != null) {
                     this.title.setTextColor(rui.getText());
@@ -200,17 +202,6 @@ public class BTDeviceSelector extends AppCompatActivity implements Bluetooth.Blu
 
             }
         }
-    }
-
-    @Data
-    private class RDevice {
-        private String name;
-        private String MAC;
-
-         public RDevice(String name, String MAC) {
-             this.name = name;
-             this.MAC = MAC;
-         }
     }
 
     @Override

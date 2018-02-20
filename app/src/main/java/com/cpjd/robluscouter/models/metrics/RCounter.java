@@ -88,5 +88,8 @@ public class RCounter extends RMetric {
         counter.setRequired(required);
         return counter;
     }
-
+    @Override
+    public String toString() {
+        return String.valueOf(value);
+    }
 }

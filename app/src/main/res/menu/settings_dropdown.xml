@@ -26,7 +26,7 @@
     <item
         android:id="@+id/bluetooth"
         app:showAsAction="never"
-        android:title="Sync (Bluetooth)" />
+        android:title="Bluetooth Sync" />
     <item
         android:id="@+id/settings"
         app:showAsAction="never"

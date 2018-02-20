@@ -85,6 +85,12 @@ public class Service extends android.app.Service {
          */
         IO io = new IO(getApplicationContext());
         RSettings settings = io.loadSettings();
+
+        if(settings.isUsingBluetoothOnly()) {
+            Log.d("Service-RSBS", "Exiting loop(), Bluetooth only mode is enabled.");
+            return;
+        }
+
         RCloudSettings cloudSettings = io.loadCloudSettings();
         Request r = new Request(settings.getServerIP());
         ObjectMapper mapper = new ObjectMapper().configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);

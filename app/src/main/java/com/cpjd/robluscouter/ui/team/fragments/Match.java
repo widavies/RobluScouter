@@ -5,19 +5,24 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.cpjd.robluscouter.R;
 import com.cpjd.robluscouter.io.IO;
 import com.cpjd.robluscouter.models.RForm;
 import com.cpjd.robluscouter.models.metrics.RBoolean;
+import com.cpjd.robluscouter.models.metrics.RCalculation;
 import com.cpjd.robluscouter.models.metrics.RCheckbox;
 import com.cpjd.robluscouter.models.metrics.RChooser;
 import com.cpjd.robluscouter.models.metrics.RCounter;
 import com.cpjd.robluscouter.models.metrics.RDivider;
+import com.cpjd.robluscouter.models.metrics.RFieldDiagram;
 import com.cpjd.robluscouter.models.metrics.RGallery;
 import com.cpjd.robluscouter.models.metrics.RMetric;
 import com.cpjd.robluscouter.models.metrics.RSlider;
@@ -107,12 +112,35 @@ public class Match extends Fragment implements RMetricToUI.ElementsListener {
         else if (e instanceof RStopwatch) layout.addView(els.getStopwatch((RStopwatch) e));
         else if (e instanceof RTextfield) layout.addView(els.getTextfield((RTextfield) e));
         else if(e instanceof RDivider) layout.addView(els.getDivider((RDivider)e));
+        else if(e instanceof RFieldDiagram) layout.addView(els.getFieldDiagram(position, (RFieldDiagram)e));
+        else if(e instanceof RCalculation) layout.addView(els.getCalculationMetric(TeamViewer.checkout.getTeam().getTabs().get(position).getMetrics(), ((RCalculation)e)));
         else System.out.println("Couldn't resolve item!");
-
     }
 
     @Override
     public void changeMade(RMetric metric) {
+                /*
+         * Notify any calculation metrics that a change was made
+         */
+        for(int i = 0; i < layout.getChildCount(); i++) {
+            CardView cv = (CardView) layout.getChildAt(i);
+            if(cv.getTag() != null && cv.getTag().toString().split(":")[0].equals("CALC")) {
+                // We've discovered a calculation metric, we have access to the ID, so acquire a new copy of the view
+                int ID = Integer.parseInt(cv.getTag().toString().split(":")[1]);
+                for(RMetric m : TeamViewer.checkout.getTeam().getTabs().get(position).getMetrics()) {
+                    if(m.getID() == ID) {
+                        // Get the calculation
+                        String value = m.getTitle()+"\nValue: "+((RCalculation)m).getValue(TeamViewer.checkout.getTeam().getTabs().get(position).getMetrics());
+                        // Set the text
+                        RelativeLayout rl = (RelativeLayout) cv.getChildAt(0);
+                        TextView tv = (TextView) rl.getChildAt(0);
+                        tv.setText(value);
+                        break;
+                    }
+                }
+            }
+        }
+
         // set the metric as modified - this is a critical line, otherwise scouting data will get deleted
         metric.setModified(true);
 

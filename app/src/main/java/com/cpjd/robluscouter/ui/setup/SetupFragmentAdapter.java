@@ -37,9 +37,6 @@ public class SetupFragmentAdapter extends PagerAdapter {
                 resId = R.id.permissions_setup_page;
                 break;
             case 3:
-                resId = R.id.cloud_sign_in;
-                break;
-            case 4:
                 resId = R.id.finished;
         }
 

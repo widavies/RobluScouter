@@ -13,6 +13,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -27,7 +28,10 @@ import com.cpjd.robluscouter.io.IO;
 import com.cpjd.robluscouter.models.RCheckout;
 import com.cpjd.robluscouter.models.RForm;
 import com.cpjd.robluscouter.models.RUI;
+import com.cpjd.robluscouter.models.metrics.RFieldDiagram;
+import com.cpjd.robluscouter.models.metrics.RMetric;
 import com.cpjd.robluscouter.ui.UIHandler;
+import com.cpjd.robluscouter.ui.images.Drawing;
 import com.cpjd.robluscouter.ui.team.fragments.TeamTabAdapter;
 import com.cpjd.robluscouter.utils.Constants;
 import com.cpjd.robluscouter.utils.Utils;
@@ -240,6 +244,23 @@ public class TeamViewer extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(resultCode == Constants.GALLERY_EXIT) {
             checkout = new IO(getApplicationContext()).loadCheckout(checkout.getID());
+            tabAdapter.notifyDataSetChanged();
+        }
+        else if(resultCode == Constants.FIELD_DIAGRAM_EDITED) {
+            int position = data.getIntExtra("position", 0);
+            int ID = data.getIntExtra("ID", 0);
+            byte[] drawings = Drawing.DRAWINGS;
+            Drawing.DRAWINGS = null;
+
+            for(RMetric metric : TeamViewer.checkout.getTeam().getTabs().get(position).getMetrics()) {
+                if(metric.getID() == ID) {
+                    metric.setModified(true);
+                    ((RFieldDiagram)metric).setDrawings(drawings);
+                    break;
+                }
+            }
+            TeamViewer.checkout.getTeam().setLastEdit(System.currentTimeMillis());
+            new IO(getApplicationContext()).saveMyCheckout(TeamViewer.checkout);
             tabAdapter.notifyDataSetChanged();
         }
     }

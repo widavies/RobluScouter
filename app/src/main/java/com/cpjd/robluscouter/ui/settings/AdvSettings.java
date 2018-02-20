@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -19,6 +20,7 @@ import com.cpjd.robluscouter.models.RUI;
 import com.cpjd.robluscouter.sync.cloud.AutoCheckoutTask;
 import com.cpjd.robluscouter.ui.UIHandler;
 import com.cpjd.robluscouter.ui.bluetooth.BTDeviceSelector;
+import com.cpjd.robluscouter.ui.dialogs.FastDialogBuilder;
 import com.cpjd.robluscouter.utils.Constants;
 import com.cpjd.robluscouter.utils.Utils;
 import com.mikepenz.aboutlibraries.Libs;
@@ -85,7 +87,7 @@ public class AdvSettings extends AppCompatActivity{
                 "2.0.0-2.9.9\nRoblu Version 2, we don't talk about that anymore\n\n1.0.0-1.9.9\nRoblu Version 1 is where humans go to die";
 
         private ProgressDialog pd;
-
+        private Preference p;
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
@@ -105,10 +107,23 @@ public class AdvSettings extends AppCompatActivity{
             findPreference("privacy").setOnPreferenceClickListener(this);
             findPreference("server_ip").setOnPreferenceChangeListener(this);
             findPreference("bt_devices").setOnPreferenceClickListener(this);
+            p = findPreference("sync_list");
+            StringBuilder devices = new StringBuilder();
+            if(settings.getBluetoothServerMACs() != null) {
+                for(String s : settings.getBluetoothServerMACs()) {
+                    devices.append(s).append("\n");
+                }
+            }
+            p.setOnPreferenceClickListener(this);
+            p.setSummary("This will clear the following devices from your sync list:\n"+devices.toString());
 
             ListPreference lp = (ListPreference) findPreference("auto_checkouts");
             lp.setValueIndex(settings.getAutoAssignmentMode());
             lp.setOnPreferenceChangeListener(this);
+
+            CheckBoxPreference cbp = (CheckBoxPreference) findPreference("bt_only");
+            cbp.setChecked(settings.isUsingBluetoothOnly());
+            cbp.setOnPreferenceChangeListener(this);
 
             EditTextPreference preference = (EditTextPreference) findPreference("team");
             preference.setOnPreferenceChangeListener(this);
@@ -126,6 +141,31 @@ public class AdvSettings extends AppCompatActivity{
                         .withAboutSpecial3Description(CHANGELOG).
                         start(getActivity());
                 return true;
+            }
+            else if(preference.getKey().equals("sync_list")) {
+                new FastDialogBuilder()
+                        .setTitle("Are you sure")
+                        .setMessage("Are you sure you want to remove ALL devices from your sync list?")
+                        .setPositiveButtonText("Yes")
+                        .setNegativeButtonText("No")
+                        .setFastDialogListener(new FastDialogBuilder.FastDialogListener() {
+                            @Override
+                            public void accepted() {
+                                settings.getBluetoothServerMACs().clear();
+                                new IO(getActivity()).saveSettings(settings);
+                                p.setSummary("This will clear the following devices from your sync list:\n");
+                            }
+
+                            @Override
+                            public void denied() {
+
+                            }
+
+                            @Override
+                            public void neutral() {
+
+                            }
+                        }).build(getActivity());
             }
             else if(preference.getKey().equals("bt_devices")) {
                 Intent i = new Intent(getActivity(), BTDeviceSelector.class);
@@ -155,6 +195,10 @@ public class AdvSettings extends AppCompatActivity{
                     return false;
                 }
                 settings.setCode(o.toString());
+           }
+           // user is trying to enable Bluetooth ONLY
+           else if(preference.getKey().equals("bt_only")) {
+                settings.setUsingBluetoothOnly((Boolean) o);
            }
            // user selected auto checkouts option
            else if(preference.getKey().equalsIgnoreCase("auto_checkouts")) {

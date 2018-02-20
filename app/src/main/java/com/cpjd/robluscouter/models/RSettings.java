@@ -71,6 +71,12 @@ public class RSettings implements Serializable {
     private int autoAssignmentMode;
 
     /**
+     * The user plans to use Bluetooth as their only syncing method, this will
+     * prevent the background service from deleting all of their stuff.
+     */
+    private boolean usingBluetoothOnly;
+
+    /**
      * Sets the defaults for settings
      */
     public RSettings() {

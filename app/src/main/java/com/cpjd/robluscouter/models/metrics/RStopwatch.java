@@ -60,4 +60,8 @@ public class RStopwatch extends RMetric {
         stopwatch.setRequired(required);
         return stopwatch;
     }
+    @Override
+    public String toString() {
+        return String.valueOf(time);
+    }
 }

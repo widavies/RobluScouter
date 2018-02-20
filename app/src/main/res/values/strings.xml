@@ -36,5 +36,6 @@
     <string name="line_color">Line color</string>
 
     <string name="not_observed_yet">Not observed yet</string>
-
+    <string name="requires_permissions">Roblu requires several permissions to work correctly. Please accept the dialog that appears after clicking next.
+        You may wonder why coarse location is required, this is required for Bluetooth device scanning. Roblu does not store or process your location.</string>
 </resources>

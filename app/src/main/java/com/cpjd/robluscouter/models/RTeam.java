@@ -1,6 +1,7 @@
 package com.cpjd.robluscouter.models;
 
 import com.cpjd.robluscouter.models.metrics.RBoolean;
+import com.cpjd.robluscouter.models.metrics.RCalculation;
 import com.cpjd.robluscouter.models.metrics.RCheckbox;
 import com.cpjd.robluscouter.models.metrics.RChooser;
 import com.cpjd.robluscouter.models.metrics.RCounter;
@@ -228,6 +229,9 @@ public class RTeam implements Serializable {
                             ((RBoolean) s).setValue(((RBoolean) e).isValue());
                         else if(e instanceof RCounter && !s.isModified() && s instanceof RCounter) {
                             ((RCounter)s).setValue(((RCounter)e).getValue());
+                        }
+                        else if(e instanceof RCalculation && s instanceof RCalculation) {
+                            ((RCalculation) s).setCalculation(((RCalculation) e).getCalculation());
                         }
                         else if(e instanceof RCheckbox && s instanceof RCheckbox) {
                             // update the titles always, rely on position for this one

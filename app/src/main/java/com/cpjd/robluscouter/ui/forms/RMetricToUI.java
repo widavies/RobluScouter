@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.RectF;
@@ -42,16 +43,19 @@ import android.widget.TextView;
 import com.cpjd.robluscouter.R;
 import com.cpjd.robluscouter.models.RUI;
 import com.cpjd.robluscouter.models.metrics.RBoolean;
+import com.cpjd.robluscouter.models.metrics.RCalculation;
 import com.cpjd.robluscouter.models.metrics.RCheckbox;
 import com.cpjd.robluscouter.models.metrics.RChooser;
 import com.cpjd.robluscouter.models.metrics.RCounter;
 import com.cpjd.robluscouter.models.metrics.RDivider;
+import com.cpjd.robluscouter.models.metrics.RFieldDiagram;
 import com.cpjd.robluscouter.models.metrics.RGallery;
 import com.cpjd.robluscouter.models.metrics.RMetric;
 import com.cpjd.robluscouter.models.metrics.RSlider;
 import com.cpjd.robluscouter.models.metrics.RStopwatch;
 import com.cpjd.robluscouter.models.metrics.RTextfield;
 import com.cpjd.robluscouter.ui.dialogs.FastDialogBuilder;
+import com.cpjd.robluscouter.ui.images.Drawing;
 import com.cpjd.robluscouter.ui.images.FullScreenImageGalleryActivity;
 import com.cpjd.robluscouter.ui.images.FullScreenImageGalleryAdapter;
 import com.cpjd.robluscouter.ui.images.ImageGalleryActivity;
@@ -135,22 +139,41 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         yes.setText(R.string.yes);
         no.setText(R.string.no);
 
+        final RelativeLayout layout = new RelativeLayout(activity);
+        final TextView observed = new TextView(activity);
+
         // don't check either if the boolean isn't modified
         yes.setChecked(bool.isValue());
         no.setChecked(!bool.isValue());
         no.setPadding(0, 0, 0, Utils.DPToPX(activity, 10));
         group.addView(yes);
         group.addView(no);
-        final RelativeLayout layout = new RelativeLayout(activity);
+        no.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                layout.removeView(observed);
+
+                listener.changeMade(bool);
+            }
+        });
+        yes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                layout.removeView(observed);
+
+                listener.changeMade(bool);
+            }
+        });
+
 
         // Observed field
-        final TextView observed = new TextView(activity);
+
         observed.setTextColor(rui.getText());
         observed.setText(R.string.not_observed_yet);
         observed.setTextSize(10);
+        observed.setPadding(observed.getPaddingLeft(), Utils.DPToPX(activity, 15), observed.getPaddingRight(), observed.getPaddingBottom());
         observed.setId(Utils.generateViewId());
         observed.setTag("N.O.");
-        observed.setPadding(observed.getPaddingLeft(), Utils.DPToPX(activity, 15), observed.getPaddingRight(), observed.getPaddingBottom());
 
         group.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -250,6 +273,13 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         observed.setId(Utils.generateViewId());
         observed.setTag("N.O.");
         observed.setPadding(0, Utils.DPToPX(activity, 20), 0, 0);
+        observed.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                layout.removeView(observed);
+                listener.changeMade(counter);
+            }
+        });
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -299,6 +329,7 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         if(!counter.isModified()) layout.addView(observed);
         return getCard(layout);
     }
+
     /**
      * Gets the Slider UI card from an RSlider reference
      * @param slider RSlider reference to be set to the UI
@@ -340,12 +371,21 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         final RelativeLayout layout = new RelativeLayout(activity);
 
         // Observed field
-        final TextView observed = new TextView(activity);
+        final Button observed = new Button(activity);
         observed.setTextColor(rui.getText());
         observed.setText(R.string.not_observed_yet);
         observed.setTextSize(10);
         observed.setId(Utils.generateViewId());
         observed.setTag("N.O.");
+        observed.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                layout.removeView(observed);
+
+                listener.changeMade(slider);
+            }
+        });
+
         observed.setPadding(Utils.DPToPX(activity, 8), Utils.DPToPX(activity, 4), observed.getPaddingRight(), observed.getPaddingBottom());
 
         sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -390,6 +430,7 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         if(!slider.isModified()) layout.addView(observed);
         return getCard(layout);
     }
+
     /**
      * Gets the Chooser UI card from an RChooser reference
      * @param chooser RChooser reference to be set to the UI
@@ -411,15 +452,23 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.MATCH_PARENT);
 
         // Observed field
-        final TextView observed = new TextView(activity);
+        final Button observed = new Button(activity);
         observed.setTextColor(rui.getText());
         observed.setText(R.string.not_observed_yet);
         observed.setTextSize(10);
         observed.setId(Utils.generateViewId());
         observed.setTag("N.O.");
+
         observed.setPadding(Utils.DPToPX(activity, 8), Utils.DPToPX(activity, 4), observed.getPaddingRight(), observed.getPaddingBottom());
 
         final RelativeLayout layout = new RelativeLayout(activity);
+        observed.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                layout.removeView(observed);
+                listener.changeMade(chooser);
+            }
+        });
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             boolean first;
             @Override
@@ -427,14 +476,9 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
                 if(!first) {
                     first = true;
                 } else {
-                    /*
-                     * detect if this was a legit switch, spinner gets spam inited by the system all the time
-                     */
-                    if(i != chooser.getSelectedIndex()) {
-                        layout.removeView(observed);
-                        chooser.setSelectedIndex(i);
-                        listener.changeMade(chooser);
-                    }
+                    layout.removeView(observed);
+                    chooser.setSelectedIndex(i);
+                    listener.changeMade(chooser);
                 }
             }
             @Override
@@ -496,12 +540,19 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         layout.addView(title);
 
         // Observed field
-        final TextView observed = new TextView(activity);
+        final Button observed = new Button(activity);
         observed.setTextColor(rui.getText());
         observed.setText(R.string.not_observed_yet);
         observed.setTextSize(10);
         observed.setId(Utils.generateViewId());
         observed.setTag("N.O.");
+        observed.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                layout.removeView(observed);
+                listener.changeMade(checkbox);
+            }
+        });
 
         RelativeLayout.LayoutParams oParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         if(checkbox.getValues() != null) {
@@ -540,6 +591,53 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         observed.setLayoutParams(oParams);
         if(!checkbox.isModified()) layout.addView(observed);
 
+        return getCard(layout);
+    }
+    public CardView getFieldDiagram(final int position, final RFieldDiagram fieldDiagram) {
+        RelativeLayout layout = new RelativeLayout(activity);
+        TextView textView = new TextView(activity);
+        textView.setText(fieldDiagram.getTitle());
+        textView.setPadding(textView.getPaddingLeft(), textView.getPaddingTop(), textView.getPaddingRight(), Utils.DPToPX(activity, 10));;
+        textView.setTextColor(rui.getText());
+        textView.setId(Utils.generateViewId());
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        params.addRule(RelativeLayout.BELOW, textView.getId());
+        layout.addView(textView);
+        ImageView imageView = new ImageView(activity);
+        imageView.setAdjustViewBounds(true);
+
+        // Get field diagram
+        final Bitmap field = BitmapFactory.decodeResource(activity.getResources(), fieldDiagram.getPictureID());
+
+        // Get drawings
+        if(fieldDiagram.getDrawings() != null) {
+            Bitmap drawings = BitmapFactory.decodeByteArray(fieldDiagram.getDrawings(), 0, fieldDiagram.getDrawings().length);
+            Bitmap mutableBitmap = field.copy(Bitmap.Config.ARGB_8888, true);
+            Canvas c = new Canvas(mutableBitmap);
+            Paint p = new Paint(Paint.FILTER_BITMAP_FLAG);
+            c.drawBitmap(drawings, 0, 0, p);
+            layout.setBackground(ContextCompat.getDrawable(activity, R.drawable.field2018));
+            imageView.setImageBitmap(drawings);
+            imageView.setAlpha(0.55f);
+        } else imageView.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.field2018));
+
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(position == -1 || !editable) return;
+
+                Intent intent = new Intent(activity, Drawing.class);
+                intent.putExtra("fieldDrawings", fieldDiagram.getDrawings());
+                intent.putExtra("fieldDiagramID", fieldDiagram.getPictureID());
+                intent.putExtra("fieldDiagram", true);
+                intent.putExtra("position", position);
+                intent.putExtra("ID", fieldDiagram.getID());
+                activity.startActivityForResult(intent, Constants.GENERAL);
+            }
+        });
+        imageView.setLayoutParams(params);
+        imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+        layout.addView(imageView);
         return getCard(layout);
     }
 
@@ -640,6 +738,10 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
                         stopwatch.setTime(0.0);
                         listener.changeMade(stopwatch);
                         timer.setText(R.string.no_time);
+                        if(playButton.getBackground() == pause) {
+                            playButton.callOnClick();
+                            timer.setText("0.0s");
+                        }
                     }
                 });
             }
@@ -657,7 +759,6 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
             @Override
             public void onClick(View v) {
                 if(!editable) return;
-
                 layout.removeView(observed);
                 // Add the current time on the stopwatch to the view
                 double t = Double.parseDouble(timer.getText().toString().replace("s", ""));
@@ -665,7 +766,6 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
                 if(times == null) times = new ArrayList<>();
                 times.add(t);
                 stopwatch.setTimes(times);
-
                 addStopwatchLapButton(stopwatch, layout, playButton, laps, t);
                 listener.changeMade(stopwatch);
             }
@@ -683,7 +783,6 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
                     time = new Timer();
                     task = new TimerTask() {
                         public void run() {
-
                             activity.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -732,6 +831,7 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         if(!stopwatch.isModified()) layout.addView(observed);
         return getCard(layout);
     }
+
     private void addStopwatchLapButton(final RStopwatch stopwatch, final RelativeLayout layout, final ImageView playButton, final ArrayList<Button> buttons, double time) {
         final Button b = new Button(activity);
         b.setText("Lap "+(buttons.size() +1)+": "+time+" seconds");
@@ -787,6 +887,34 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         buttons.add(b);
         layout.addView(b);
     }
+
+
+    public CardView getCalculationMetric(ArrayList<RMetric> metrics, RCalculation calculation) {
+        String value;
+        if(metrics != null) value = calculation.getTitle()+"\nValue: "+calculation.getValue(metrics);
+        else value = calculation.getTitle()+"\nValue:";
+
+        RelativeLayout layout = new RelativeLayout(activity);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+        params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        TextView et = new TextView(activity);
+        et.setGravity(Gravity.CENTER);
+        et.setText(value);
+        et.setEnabled(false);
+        et.setTextColor(rui.getText());
+        et.setTextSize(28f);
+        et.setInputType(InputType.TYPE_CLASS_TEXT);
+        et.setHighlightColor(rui.getAccent());
+        et.setSingleLine(false);
+        et.setFocusableInTouchMode(true);
+        et.setLayoutParams(params);
+        layout.addView(et);
+
+        CardView card = getCard(layout);
+        card.setTag("CALC:"+calculation.getID());
+        return card;
+    }
+
 
     /**
      * Gets the Textfield UI card from an RTextfield reference
@@ -852,7 +980,7 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         TextView et = new TextView(activity);
         et.setGravity(Gravity.CENTER);
         et.setText(divider.getTitle());
-        et.setEnabled(editable);
+        et.setEnabled(false);
         et.setTextColor(rui.getText());
         et.setTextSize(28f);
         et.setInputType(InputType.TYPE_CLASS_TEXT);

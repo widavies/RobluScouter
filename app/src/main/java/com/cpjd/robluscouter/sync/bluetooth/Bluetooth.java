@@ -18,7 +18,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
-import lombok.Setter;
+import lombok.Data;
 
 /**
  * This class is built off the Android Bluetooth API. All Bluetooth code should be accessed through here, this class will simplify
@@ -29,6 +29,7 @@ import lombok.Setter;
  * @author Will Davies
  */
 @SuppressWarnings("unused")
+@Data
 public class Bluetooth {
 
     /**
@@ -39,25 +40,17 @@ public class Bluetooth {
     /**
      * This is the device identification Roblu is using for Bluetooth communication
      */
-    private UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
+    private UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     /**
-     * This is the listener that will receive info about certain events happening in this class
+     * This is the if(listener != null) listener that will receive info about certain events happening in this class
      */
-    @Setter
     public BluetoothListener listener;
 
     /**
      * This is a reference to the parent activity, for registering receivers and IntentFilters
      */
     private Activity activity;
-
-    /**
-     * If true, this class will create a secure connection. Note, a secure connection doesn't always work
-     * well for purposes like what Roblu uses Bluetooth for, as we aren't transferring any sensitive information,
-     * we prioritize functionality over security at this specific point.
-     */
-    private boolean useSecureConnection;
 
     /*
      * Communication
@@ -86,13 +79,13 @@ public class Bluetooth {
     private OutputStream out;
 
     /**
-     * This listener can be attached to a calling activity and will receive status updates
+     * This if(listener != null) listener can be attached to a calling activity and will receive status updates
      * about what is going on in this class
      */
     public interface BluetoothListener {
         void deviceDiscovered(BluetoothDevice device);
         void messageReceived(String header, String message);
-        void deviceConnected();
+        void deviceConnected(BluetoothDevice device);
         void deviceDisconnected(BluetoothDevice device, String reason);
         void errorOccurred(String message);
         void stateChanged(int state);
@@ -102,10 +95,8 @@ public class Bluetooth {
     /**
      * Creates a Bluetooth Object
      * @param activity reference to the parent activity where IntentFilter should be registered to
-     * @param useSecureConnection true if the a secure connection should be used
      */
-    public Bluetooth(Activity activity, boolean useSecureConnection) {
-        this.useSecureConnection = useSecureConnection;
+    public Bluetooth(Activity activity) {
         this.activity = activity;
 
         // Obtain the Bluetooth adapter
@@ -122,7 +113,7 @@ public class Bluetooth {
 
     /**
      * Checks if this device supports a Bluetooth connection
-     * @return true if this device supports a Bluetooth connection
+     * @return true if this device supports Bluetooth
      */
     public boolean isBluetoothSupported() {
         return BluetoothAdapter.getDefaultAdapter() != null;
@@ -155,12 +146,22 @@ public class Bluetooth {
      * Forces a pair with the target device.
      * @param device The target device to pair to
      */
-    public void pair(BluetoothDevice device){
+    public void pair(final BluetoothDevice device){
         try {
             Method method = device.getClass().getMethod("createBond", (Class[]) null);
             method.invoke(device, (Object[]) null);
         } catch (final Exception e) {
-
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(listener != null) listener.errorOccurred("Bluetooth: Failed to pair to Bluetooth device with name "+device.getName()+".");
+                        }
+                    });
+                }
+            });
         }
     }
 
@@ -174,6 +175,7 @@ public class Bluetooth {
         if(connectThread != null) {
             connectThread.cancel();
         }
+        device = null;
     }
 
     /**
@@ -200,9 +202,12 @@ public class Bluetooth {
 
     /**
      * Starts searching for nearby for nearby devices,
-     * the listener will be updated when new devices are found
+     * the if(listener != null) listener will be updated when new devices are found
      */
     public void startScanning() {
+        if(bluetoothAdapter.isDiscovering()) {
+            bluetoothAdapter.cancelDiscovery();
+        }
         bluetoothAdapter.startDiscovery();
     }
 
@@ -235,16 +240,15 @@ public class Bluetooth {
      * @param header the tag of the message, sort of a Meta identifier
      * @param message the message to send to the server
      */
-    public void send(String header, String message) {
+    public void send(final String header,final String message) {
         try {
-            String toSend = "HEADER:header\n"+message;
-            out.write(toSend.getBytes());
+            String toSend = header+":"+message+"\n";
+            if(out != null) out.write(toSend.getBytes());
         } catch(IOException e) {
-            disconnect();
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    listener.deviceDisconnected(device, "Device disconnected: disconnect() called.");
+                    if(listener != null) listener.deviceDisconnected(device, "Bluetooth: Failed to send message "+message+" with header "+header+".");
                 }
             });
         }
@@ -268,7 +272,7 @@ public class Bluetooth {
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        listener.errorOccurred("Failed to accept incoming Bluetooth device connection request.");
+                        if(listener != null) listener.errorOccurred("Bluetooth: Failed to accept incoming Bluetooth device connection request.");
                     }
                 });
             }
@@ -276,6 +280,8 @@ public class Bluetooth {
         }
 
         public void run() {
+            bluetoothAdapter.cancelDiscovery();
+
             BluetoothSocket socket;
             // Keep listening until exception occurs or a socket is returned.
             while (true) {
@@ -285,7 +291,7 @@ public class Bluetooth {
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            listener.errorOccurred("Failed to obtain socket from Bluetooth connection.");
+                            if(listener != null) listener.errorOccurred("Bluetooth: Failed to accept incoming Bluetooth socket.");
                         }
                     });
                     break;
@@ -293,55 +299,43 @@ public class Bluetooth {
 
                 if(socket != null) {
                     try {
-                        in = socket.getInputStream();
-
-                        BufferedReader br = new BufferedReader(new InputStreamReader(in));
-                        StringBuilder content = new StringBuilder();
-                        String header = "";
-                        String msg;
-                        while((msg = br.readLine()) != null) {
-                            if(msg.startsWith("HEADER")) {
-                                header = msg.split(":")[1];
-                                content = new StringBuilder();
-                            }
-                            content.append(msg);
-                        }
-
-                        final String head = header;
-                        final String con = content.toString();
-
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                listener.messageReceived(head, con);
-                            }
-                        });
-
+                        out = socket.getOutputStream();
                     } catch(IOException e) {
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                listener.errorOccurred("Failed to receive data from Bluetooth socket.");
+                                if(listener != null) listener.errorOccurred("Bluetooth: Failed to obtain output stream from Bluetooth socket.");
                             }
                         });
                     }
 
                     try {
-                        out = socket.getOutputStream();
-                    } catch(IOException e) {}
+                        in = socket.getInputStream();
+
+                        BufferedReader br = new BufferedReader(new InputStreamReader(in));
+                        String msg;
+                        while((msg = br.readLine()) != null) {
+                            final String header = msg.split(":")[0];
+                            final String content = msg.substring(header.length() + 1);
+
+                            if(listener != null) listener.messageReceived(header, content);
+                        }
+                    } catch(IOException e) {
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                listener.errorOccurred("Failed to get output stream from socket.");
+                                if(listener != null) listener.errorOccurred("Bluetooth: Failed to read data from Bluetooth socket.");
                             }
                         });
+                    }
+
                     try {
                         serverSocket.close();
                     } catch(IOException e) {
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                listener.errorOccurred("Failed to close Bluetooth socket.");
+                                if(listener != null) listener.errorOccurred("Bluetooth: Failed to close the Bluetooth server socket.");
                             }
                         });
                     }
@@ -358,15 +352,18 @@ public class Bluetooth {
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        listener.errorOccurred("Failed to close server socket.");
+                        if(listener != null) listener.errorOccurred("Bluetooth: Failed to close server socket.");
                     }
                 });
             }
         }
     }
 
+    /**
+     * Connects to a target device
+     */
     private class ConnectThread extends Thread {
-        private final BluetoothSocket socket;
+        private BluetoothSocket socket;
         private final BluetoothDevice mmDevice;
         private InputStream in;
 
@@ -376,14 +373,15 @@ public class Bluetooth {
             BluetoothSocket tmp = null;
             mmDevice = device1;
             device = device1;
-
-
             try {
-                // Get a BluetoothSocket to connect with the given BluetoothDevice.
-                // MY_UUID is the app's UUID string, also used in the server code.
                 tmp = device.createRfcommSocketToServiceRecord(uuid);
             } catch (IOException e) {
-                listener.errorOccurred("Failed to create Bluetooth socket.");
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(listener != null) listener.errorOccurred("Bluetooth: Failed to connect to target device "+device.getName()+".");
+                    }
+                });
             }
             socket = tmp;
         }
@@ -393,33 +391,22 @@ public class Bluetooth {
             bluetoothAdapter.cancelDiscovery();
 
             try {
-                // Connect to the remote device through the socket. This call blocks
-                // until it succeeds or throws an exception.
                 socket.connect();
-
             } catch (IOException connectException) {
-                // Unable to connect; close the socket and return.
                 try {
                     socket.close();
                 } catch (IOException closeException) {
-                    listener.errorOccurred("Failed to close client Bluetooth socket.");
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(listener != null) listener.errorOccurred("Bluetooth: Failed to close client Bluetooth socket.");
+                        }
+                    });
                 }
                 return;
             }
 
             boolean success = true;
-
-            try {
-                in = socket.getInputStream();
-            } catch(IOException e) {
-                success = false;
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        listener.errorOccurred("Failed to obtain input stream from Bluetooth socket.");
-                    }
-                });
-            }
 
             try {
                 out = socket.getOutputStream();
@@ -428,21 +415,57 @@ public class Bluetooth {
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        listener.errorOccurred("Failed to obtain output stream from Bluetooth socket.");
+                        if(listener != null) listener.errorOccurred("Bluetooth: Failed to obtain output stream from Bluetooth socket.");
                     }
                 });
             }
 
-            if(success) listener.deviceConnected();
+            if(success)
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(listener != null) listener.deviceConnected(mmDevice);
+                    }
+                });
+
+            try {
+                in = socket.getInputStream();
+
+                BufferedReader br = new BufferedReader(new InputStreamReader(in));
+                String msg;
+                while((msg = br.readLine()) != null) {
+                    final String header = msg.split(":")[0];
+                    final String content = msg.substring(header.length() + 1);
+
+                    listener.messageReceived(header, content);
+                }
+            } catch(IOException e) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(listener != null) listener.errorOccurred("Bluetooth: Failed to read data from Bluetooth socket.");
+                    }
+                });
+            }
         }
 
         // Closes the client socket and causes the thread to finish.
         public void cancel() {
             try {
                 socket.close();
-                listener.deviceDisconnected(device, "Connected canceled.");
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(listener != null) listener.deviceDisconnected(device, "Connected canceled.");
+                    }
+                });
             } catch (IOException e) {
-                listener.errorOccurred("Failed to close client Bluetooth socket.");
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(listener != null) listener.errorOccurred("Failed to close client Bluetooth socket.");
+                    }
+                });
             }
         }
     }
@@ -456,23 +479,23 @@ public class Bluetooth {
             if(BluetoothDevice.ACTION_FOUND.equals(action)) {
                 // Discovery has found a device. Get the BluetoothDevice
                 // object and its info from the Intent.
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                listener.deviceDiscovered(device);
-            }
-            else if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                final BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        listener.discoveryStopped();
+                        if(listener != null) listener.deviceDiscovered(device);
                     }
                 });
+            }
+            else if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                startScanning();
             }
             else if(BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                 final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        listener.stateChanged(state);
+                        if(listener != null) listener.stateChanged(state);
                     }
                 });
             }
