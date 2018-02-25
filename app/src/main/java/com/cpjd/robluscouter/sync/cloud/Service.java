@@ -18,6 +18,7 @@ import com.cpjd.robluscouter.models.RForm;
 import com.cpjd.robluscouter.models.RSettings;
 import com.cpjd.robluscouter.models.RTab;
 import com.cpjd.robluscouter.models.RUI;
+import com.cpjd.robluscouter.models.metrics.RGallery;
 import com.cpjd.robluscouter.notifications.Notify;
 import com.cpjd.robluscouter.utils.HandoffStatus;
 import com.cpjd.robluscouter.utils.Utils;
@@ -25,8 +26,11 @@ import com.cpjd.robluscouter.utils.Utils;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -86,11 +90,6 @@ public class Service extends android.app.Service {
         IO io = new IO(getApplicationContext());
         RSettings settings = io.loadSettings();
 
-        if(settings.isUsingBluetoothOnly()) {
-            Log.d("Service-RSBS", "Exiting loop(), Bluetooth only mode is enabled.");
-            return;
-        }
-
         RCloudSettings cloudSettings = io.loadCloudSettings();
         Request r = new Request(settings.getServerIP());
         ObjectMapper mapper = new ObjectMapper().configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -146,11 +145,45 @@ public class Service extends android.app.Service {
             Log.d("Service-RSBS", "Checking for checkouts to fetch...");
             CloudCheckout[] checkouts = checkoutRequest.pullCheckouts(cloudSettings.getLastCheckoutSync());
             boolean shouldShowNotification = false;
+
             if(checkouts.length > 0) {
                 ArrayList<RCheckout> refList = new ArrayList<>();
+
+                long maxTimestamp = 0;
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS", Locale.getDefault());
+                sdf.setTimeZone(TimeZone.getTimeZone("UTC")); // server runs on UTC
+
                 for(CloudCheckout s : checkouts) {
+                    // Handle the timestamp
+                    long time;
+                    try {
+                        time = sdf.parse(s.getTime().replace("T", " ").replace("Z", " ")).getTime();
+                    } catch(Exception e) {
+                        time = 0;
+                    }
+                    if(time > maxTimestamp) {
+                        maxTimestamp = time;
+                    }
+
+                    // Deserialize the checkout
                     RCheckout checkout = mapper.readValue(s.getContent(), RCheckout.class);
                     if(checkout.getNameTag() == null || !checkout.getNameTag().equals(settings.getName())) shouldShowNotification = true;
+
+                    /*
+                     * Unpack images
+                     */
+                    for(RTab tab : checkout.getTeam().getTabs()) {
+                        for(int i = 0; tab.getMetrics() != null && i < tab.getMetrics().size(); i++) {
+                            if(!(tab.getMetrics().get(i) instanceof RGallery)) continue;
+
+                            ((RGallery)tab.getMetrics().get(i)).setPictureIDs(new ArrayList<Integer>());
+                            for(int j = 0; ((RGallery)tab.getMetrics().get(i)).getImages() != null && j < ((RGallery)tab.getMetrics().get(i)).getImages().size(); j++) {
+                                ((RGallery)tab.getMetrics().get(i)).getPictureIDs().add(io.savePicture(((RGallery)tab.getMetrics().get(i)).getImages().get(j)));
+                            }
+                            // Set metrics to null
+                            ((RGallery)tab.getMetrics().get(i)).setImages(null);
+                        }
+                    }
 
                     refList.add(checkout);
                     io.saveCheckout(checkout);
@@ -160,8 +193,8 @@ public class Service extends android.app.Service {
                  * Run the auto-assignment checkout task
                  */
                 new AutoCheckoutTask(null, new IO(getApplicationContext()),settings, refList).start();
-
-                cloudSettings.setLastCheckoutSync(System.currentTimeMillis());
+                cloudSettings.setLastCheckoutSync(maxTimestamp);
+                io.saveCloudSettings(cloudSettings);
                 io.saveCloudSettings(cloudSettings);
                 Log.d("Service-RSBS", "Successfully pulled "+checkouts.length+" checkouts.");
 
@@ -204,6 +237,20 @@ public class Service extends android.app.Service {
                             if(edits == null) edits = new LinkedHashMap<>();
                             edits.put(settings.getName(), System.currentTimeMillis());
                             t.setEdits(edits);
+                        }
+                    }
+
+                    /*
+                     * Pack images
+                     */
+                    for(RTab tab : checkout.getTeam().getTabs()) {
+                        for(int i = 0; tab.getMetrics() != null && i < tab.getMetrics().size(); i++) {
+                            if(!(tab.getMetrics().get(i) instanceof RGallery)) continue;
+
+                            ((RGallery)tab.getMetrics().get(i)).setImages(new ArrayList<byte[]>());
+                            for(int j = 0; ((RGallery)tab.getMetrics().get(i)).getPictureIDs() != null && j < ((RGallery)tab.getMetrics().get(i)).getPictureIDs().size(); j++) {
+                                ((RGallery)tab.getMetrics().get(i)).getImages().add(io.loadPicture(((RGallery)tab.getMetrics().get(i)).getPictureIDs().get(j)));
+                            }
                         }
                     }
                 }

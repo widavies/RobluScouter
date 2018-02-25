@@ -198,7 +198,7 @@ public class ImageGalleryActivity extends AppCompatActivity implements ImageGall
                         break;
                 }
             } catch(IOException e) {
-                Log.d("RBS", "Failed to remove EXIF rotation data from the picture.");
+                Log.d("RSBS", "Failed to remove EXIF rotation data from the picture.");
             }
 
             /*
@@ -208,11 +208,20 @@ public class ImageGalleryActivity extends AppCompatActivity implements ImageGall
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, 30, stream);
             byte[] array = stream.toByteArray();
+            
+            int newID = new IO(getApplicationContext()).savePicture(array);
 
+            // Add the image to the current array
+            if(IMAGES == null) IMAGES = new ArrayList<>();
+            IMAGES.add(array);
+            
             // save the ID to the gallery
             for(int i = 0; i < TeamViewer.checkout.getTeam().getTabs().get(rTabIndex).getMetrics().size(); i++) {
                 if(TeamViewer.checkout.getTeam().getTabs().get(rTabIndex).getMetrics().get(i).getID() == galleryID) {
-                    ((RGallery)TeamViewer.checkout.getTeam().getTabs().get(rTabIndex).getMetrics().get(i)).addImage(array);
+                    if(((RGallery)TeamViewer.checkout.getTeam().getTabs().get(rTabIndex).getMetrics().get(i)).getPictureIDs() == null) {
+                        ((RGallery)TeamViewer.checkout.getTeam().getTabs().get(rTabIndex).getMetrics().get(i)).setPictureIDs(new ArrayList<Integer>());
+                    }
+                    ((RGallery)TeamViewer.checkout.getTeam().getTabs().get(rTabIndex).getMetrics().get(i)).getPictureIDs().add(newID);
                     break;
                 }
             }
@@ -234,6 +243,16 @@ public class ImageGalleryActivity extends AppCompatActivity implements ImageGall
          * User deleted an image
          */
         else if(resultCode == Constants.IMAGE_DELETED) {
+            // Remove the image from the gallery ID list
+            for(int i = 0; i < TeamViewer.checkout.getTeam().getTabs().get(rTabIndex).getMetrics().size(); i++) {
+                if(TeamViewer.checkout.getTeam().getTabs().get(rTabIndex).getMetrics().get(i).getID() == galleryID) {
+                    int pictureID = ((RGallery)TeamViewer.checkout.getTeam().getTabs().get(rTabIndex).getMetrics().get(i)).getPictureIDs().remove(data.getIntExtra("position", 0));
+                    // delete from file system
+                    new IO(getApplicationContext()).deletePicture(pictureID);
+                    break;
+                }
+            }
+            
             IMAGES.remove(data.getIntExtra("position", 0));
             imageGalleryAdapter.notifyDataSetChanged();
 

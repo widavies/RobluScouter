@@ -13,7 +13,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -32,6 +31,7 @@ import com.cpjd.robluscouter.models.metrics.RFieldDiagram;
 import com.cpjd.robluscouter.models.metrics.RMetric;
 import com.cpjd.robluscouter.ui.UIHandler;
 import com.cpjd.robluscouter.ui.images.Drawing;
+import com.cpjd.robluscouter.ui.images.ImageGalleryActivity;
 import com.cpjd.robluscouter.ui.team.fragments.TeamTabAdapter;
 import com.cpjd.robluscouter.utils.Constants;
 import com.cpjd.robluscouter.utils.Utils;
@@ -245,6 +245,7 @@ public class TeamViewer extends AppCompatActivity {
         if(resultCode == Constants.GALLERY_EXIT) {
             checkout = new IO(getApplicationContext()).loadCheckout(checkout.getID());
             tabAdapter.notifyDataSetChanged();
+            ImageGalleryActivity.IMAGES = null;
         }
         else if(resultCode == Constants.FIELD_DIAGRAM_EDITED) {
             int position = data.getIntExtra("position", 0);

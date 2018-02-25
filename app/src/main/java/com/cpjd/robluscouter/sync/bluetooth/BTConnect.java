@@ -168,31 +168,33 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
         IO io = new IO(bluetooth.getActivity());
         ArrayList<RCheckout> checkouts = io.loadPendingCheckouts();
         ArrayList<RCheckout> toUpload = new ArrayList<>();
-        for(RCheckout checkout : checkouts) {
-            if(checkout.getStatus() == HandoffStatus.COMPLETED && checkout.getTeam().getLastEdit() > 0) {
-                for(RTab t : checkout.getTeam().getTabs()) {
-                    LinkedHashMap<String, Long> edits = t.getEdits();
-                    if(edits == null) edits = new LinkedHashMap<>();
-                    edits.put(settings.getName(), System.currentTimeMillis());
-                    t.setEdits(edits);
+        if(checkouts != null) {
+            for(RCheckout checkout : checkouts) {
+                if(checkout.getStatus() == HandoffStatus.COMPLETED && checkout.getTeam().getLastEdit() > 0) {
+                    for(RTab t : checkout.getTeam().getTabs()) {
+                        LinkedHashMap<String, Long> edits = t.getEdits();
+                        if(edits == null) edits = new LinkedHashMap<>();
+                        edits.put(settings.getName(), System.currentTimeMillis());
+                        t.setEdits(edits);
+                    }
                 }
-            }
 
-            if(checkout.getStatus() == HandoffStatus.COMPLETED) {
-                toUpload.add(checkout);
-            }
+                if(checkout.getStatus() == HandoffStatus.COMPLETED) {
+                    toUpload.add(checkout);
+                }
 
-            try {
-                bluetooth.send("SCOUTING_DATA", mapper.writeValueAsString(toUpload));
-                Notify.notifyNoAction(bluetooth.getActivity(), "Sent checkouts successfully", "Successfully sent "+checkouts.size()+" checkouts to target device over Bluetooth.");
-            } catch(Exception e) {
-                Log.d("RSBS", "Failed to send completed checkouts.");
+                try {
+                    bluetooth.send("SCOUTING_DATA", mapper.writeValueAsString(toUpload));
+                    Notify.notifyNoAction(bluetooth.getActivity(), "Sent checkouts successfully", "Successfully sent "+checkouts.size()+" checkouts to target device over Bluetooth.");
+                } catch(Exception e) {
+                    Log.d("RSBS", "Failed to send completed checkouts.");
+                }
             }
         }
 
         bluetooth.send("requestForm", "noParams");
         bluetooth.send("requestUI", "noParams");
-        bluetooth.send("requestCheckouts", "noParams");
+        bluetooth.send("requestCheckouts", "time:"+new IO(bluetooth.getActivity()).loadCloudSettings().getLastCheckoutSync());
         bluetooth.send("requestNumber", "noParams");
         bluetooth.send("requestEventName", "noParams");
         bluetooth.send("DONE", "noParams");
@@ -201,8 +203,6 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
     @Override
     public void messageReceived(String header, String message) {
         IO io = new IO(bluetooth.getActivity());
-
-        Log.d("RSBS", "Message received: "+header+", "+message);
 
         if(header.equals("FORM")) {
             try {
@@ -238,9 +238,15 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
                  */
                 new AutoCheckoutTask(null, io, settings, refList).start();
 
+                RCloudSettings cloudSettings = io.loadCloudSettings();
+                cloudSettings.setLastCheckoutSync(System.currentTimeMillis());
+                io.saveCloudSettings(cloudSettings);
+
                 Utils.requestUIRefresh(bluetooth.getActivity(), false, true);
-                Notify.notifyNoAction(bluetooth.getActivity(), "Successfully pulled "+refList.size()+" checkouts.", "Roblu Scouter successfully downloaded "+refList.size()+" checkouts from" +
-                        " the server at "+Utils.convertTime(System.currentTimeMillis()));
+                Notify.notifyNoAction(bluetooth.getActivity(), "Successfully pulled "+refList.size()+" checkouts.", "Roblu Scouter successfully pulled "+refList.size()+" checkouts from" +
+                        " a Bluetooth connection at "+Utils.convertTime(System.currentTimeMillis()));
+
+                pd.dismiss();
             } catch(Exception e) {
                 Log.d("RSBS", "Failed to process checkouts received over Bluetooth.");
             }
@@ -263,9 +269,7 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
             }
         }
         else if(header.equals("DONE")) {
-            if(!connectToNextDevice()) {
-                pd.dismiss();
-            }
+
         }
     }
 

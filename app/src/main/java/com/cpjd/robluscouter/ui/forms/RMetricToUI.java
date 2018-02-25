@@ -41,6 +41,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.cpjd.robluscouter.R;
+import com.cpjd.robluscouter.io.IO;
 import com.cpjd.robluscouter.models.RUI;
 import com.cpjd.robluscouter.models.metrics.RBoolean;
 import com.cpjd.robluscouter.models.metrics.RCalculation;
@@ -167,13 +168,20 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
 
 
         // Observed field
-
         observed.setTextColor(rui.getText());
         observed.setText(R.string.not_observed_yet);
         observed.setTextSize(10);
         observed.setPadding(observed.getPaddingLeft(), Utils.DPToPX(activity, 15), observed.getPaddingRight(), observed.getPaddingBottom());
         observed.setId(Utils.generateViewId());
         observed.setTag("N.O.");
+        observed.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                layout.removeView(observed);
+
+                listener.changeMade(bool);
+            }
+        });
 
         group.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -371,7 +379,7 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         final RelativeLayout layout = new RelativeLayout(activity);
 
         // Observed field
-        final Button observed = new Button(activity);
+        final TextView observed = new TextView(activity);
         observed.setTextColor(rui.getText());
         observed.setText(R.string.not_observed_yet);
         observed.setTextSize(10);
@@ -452,7 +460,7 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.MATCH_PARENT);
 
         // Observed field
-        final Button observed = new Button(activity);
+        final TextView observed = new TextView(activity);
         observed.setTextColor(rui.getText());
         observed.setText(R.string.not_observed_yet);
         observed.setTextSize(10);
@@ -540,7 +548,7 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         layout.addView(title);
 
         // Observed field
-        final Button observed = new Button(activity);
+        final TextView observed = new TextView(activity);
         observed.setTextColor(rui.getText());
         observed.setText(R.string.not_observed_yet);
         observed.setTextSize(10);
@@ -727,8 +735,14 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         observed.setId(Utils.generateViewId());
         observed.setTag("N.O.");
         observed.setPadding(Utils.DPToPX(activity, 8), Utils.DPToPX(activity, 10), observed.getPaddingRight(), observed.getPaddingBottom());
-
         final RelativeLayout layout = new RelativeLayout(activity);
+        observed.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                layout.removeView(observed);
+                listener.changeMade(stopwatch);
+            }
+        });
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 layout.removeView(observed);
@@ -1016,11 +1030,15 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
             @Override
             public void onClick(View v) {
                 if(demo) return;
-
-                if(gallery.getImages() != null) Log.d("RBS", "Gallery loaded "+gallery.getImages().size()+" image(s).");
-
-                // Don't forget to pass off the reference to the loaded images to the image gallery so the images don't have to be reloaded
-                ImageGalleryActivity.IMAGES = gallery.getImages();
+                /*
+                 * Load images from disk into memory
+                 */
+                IO io = new IO(activity);
+                ImageGalleryActivity.IMAGES = new ArrayList<>();
+                for(int i = 0; gallery.getPictureIDs() != null && i < gallery.getPictureIDs().size(); i++) {
+                    Log.d("RSBS", "Loading picture into checkout...");
+                    ImageGalleryActivity.IMAGES.add(io.loadPicture(gallery.getPictureIDs().get(i)));
+                }
 
                 ImageGalleryActivity.setImageThumbnailLoader(RMetricToUI.this);
                 FullScreenImageGalleryActivity.setFullScreenImageLoader(RMetricToUI.this);

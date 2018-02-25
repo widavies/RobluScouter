@@ -4,7 +4,6 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -13,6 +12,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
+import com.cpjd.http.Request;
+import com.cpjd.requests.CloudTeamRequest;
 import com.cpjd.robluscouter.R;
 import com.cpjd.robluscouter.io.IO;
 import com.cpjd.robluscouter.models.RSettings;
@@ -121,10 +122,6 @@ public class AdvSettings extends AppCompatActivity{
             lp.setValueIndex(settings.getAutoAssignmentMode());
             lp.setOnPreferenceChangeListener(this);
 
-            CheckBoxPreference cbp = (CheckBoxPreference) findPreference("bt_only");
-            cbp.setChecked(settings.isUsingBluetoothOnly());
-            cbp.setOnPreferenceChangeListener(this);
-
             EditTextPreference preference = (EditTextPreference) findPreference("team");
             preference.setOnPreferenceChangeListener(this);
             preference.getEditText().setHint("Team code");
@@ -185,20 +182,24 @@ public class AdvSettings extends AppCompatActivity{
         @Override
         public void onActivityResult(int requestCode, int resultCode, Intent data) {
             settings = new IO(getActivity()).loadSettings();
+
+            StringBuilder devices = new StringBuilder();
+            if(settings.getBluetoothServerMACs() != null) {
+                for(String s : settings.getBluetoothServerMACs()) {
+                    devices.append(s).append("\n");
+                }
+            }
+            p.setSummary("This will clear the following devices from your sync list:\n"+devices.toString());
         }
 
         @Override
-        public boolean onPreferenceChange(Preference preference, Object o) {
+        public boolean onPreferenceChange(final Preference preference, Object o) {
            if(preference.getKey().equals("team")) {
                 if(!Utils.hasInternetConnection(getActivity())) {
                     Utils.showSnackbar(getActivity().findViewById(R.id.advsettings), getActivity(), "You are not connected to the internet.", true, 0);
                     return false;
                 }
                 settings.setCode(o.toString());
-           }
-           // user is trying to enable Bluetooth ONLY
-           else if(preference.getKey().equals("bt_only")) {
-                settings.setUsingBluetoothOnly((Boolean) o);
            }
            // user selected auto checkouts option
            else if(preference.getKey().equalsIgnoreCase("auto_checkouts")) {
@@ -213,6 +214,15 @@ public class AdvSettings extends AppCompatActivity{
                } else settings.setServerIP(o.toString());
            }
            else if(preference.getKey().equals("username")) {
+               // Check if the username is valid with the server
+               Request r = new Request(settings.getServerIP());
+
+               if(r.ping() && new CloudTeamRequest(r, o.toString()).getTeam(-1) != null) {
+                   Utils.showSnackbar(getActivity().findViewById(R.id.advsettings), getActivity(), "Successfully joined team.", false, settings.getRui().getPrimaryColor());
+               } else if(r.ping() && new CloudTeamRequest(r, o.toString()).getTeam(-1) == null){
+                   Utils.showSnackbar(getActivity().findViewById(R.id.advsettings), getActivity(), "Team code not found on server.", true, settings.getRui().getPrimaryColor());
+               }
+
                settings.setName(o.toString());
            }
             new IO(getActivity()).saveSettings(settings);

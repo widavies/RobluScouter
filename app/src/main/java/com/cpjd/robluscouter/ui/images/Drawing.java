@@ -159,10 +159,16 @@ public class Drawing extends AppCompatActivity implements ColorPickerDialogListe
         final PopupMenu.OnMenuItemClickListener popupListener = new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
+                canvas.setMode(CanvasView.Mode.DRAW);
+
                 if(item.getItemId() == R.id.pen) {
                     canvas.setDrawer(CanvasView.Drawer.PEN);
                     return true;
-                } else if(item.getItemId() == R.id.line) {
+                } else if(item.getItemId() == R.id.eraser) {
+                    canvas.setMode(CanvasView.Mode.ERASER);
+                    return true;
+                }
+                else if(item.getItemId() == R.id.line) {
                     canvas.setDrawer(CanvasView.Drawer.LINE);
                     return true;
                 } else if(item.getItemId() == R.id.rectangle) {

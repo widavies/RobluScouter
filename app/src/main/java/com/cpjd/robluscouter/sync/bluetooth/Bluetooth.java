@@ -488,7 +488,12 @@ public class Bluetooth {
                 });
             }
             else if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                startScanning();
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(listener != null) listener.discoveryStopped();
+                    }
+                });
             }
             else if(BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                 final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);

@@ -180,6 +180,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 String subtitleText = handoff.getTeam().getTabs().get(0).getTitle()+"\n"+ HandoffStatus.statusToString(handoff);
                 if(mode == Constants.MY_CHECKOUTS && handoff.getStatus() == HandoffStatus.COMPLETED) subtitleText+="\nUpload pending";
                 subtitle.setText(subtitleText);
+                subtitle.setTextSize(14f);
             } else if(mode == Constants.MY_MATCHES) {
                 title.setText(handoff.getTeam().getTabs().get(0).getTitle());
                 number.setText("#"+handoff.getTeam().getNumber());

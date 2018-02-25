@@ -1,6 +1,8 @@
 package com.cpjd.robluscouter.io;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import com.cpjd.robluscouter.models.RCheckout;
@@ -9,6 +11,7 @@ import com.cpjd.robluscouter.models.RForm;
 import com.cpjd.robluscouter.models.RSettings;
 import com.cpjd.robluscouter.models.RUI;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -22,6 +25,10 @@ import java.util.ArrayList;
  * Directories managed by IO:
  * -/PREFIX/checkouts: master checkouts list that is synced with the server
  * -/PREFIX/pending: locally edited checkouts waiting to upload
+ * -/PREFIX/settings.ser
+ * -/PREFIX/cloudSettings.ser
+ * -/PREFIX/mycheckouts
+ * -/PREFIX/images
  *
  * @version 4
  * @since 1.0.0
@@ -301,6 +308,70 @@ public class IO {
 
 
     // ********************UTILITY METHODS**************************
+        /*
+     * Pictures - This will allow pictures to be saved and loaded with much less of an effect on memory
+     */
+
+    /**
+     * Saves a pre-existing image to the file system with a new ID
+     * @param image the image to write
+     * @return the ID of the new image, -1 if an error occurred
+     */
+    public int savePicture(byte[] image) {
+        try {
+            int ID = getNewPictureID();
+            File file = new File(context.getFilesDir(), PREFIX+File.separator+"images"+File.separator+ID+".jpg");
+            if(!file.getParentFile().exists()) if(file.getParentFile().mkdirs()) Log.d("RSBS", "Successfully created /images directory.");
+            FileOutputStream fos = new FileOutputStream(file.getPath());
+            fos.write(image);
+            fos.close();
+            return ID;
+        } catch(Exception e) {
+            Log.d("RSBS", "Failed to save existing picture.");
+            return -1;
+        }
+    }
+
+    /**
+     * Deletes a picture from the local disk. Keep in mind, this picture's ID should also be removed from the associated RGallery
+     * metric.
+     * @param pictureID the ID of the picture to be deleted
+     */
+    public void deletePicture(int pictureID) {
+        delete(new File(context.getFilesDir(), PREFIX+ File.separator+"images"+File.separator+pictureID+".jpg"));
+    }
+
+    /**
+     * Loads a picture from the local disk into memory. This byte[] array should be inserted into an RGallery before launching the image gallery viewer.
+     * @param pictureID the pictureID that contains the picture
+     * @return a byte[] representing the picture
+     */
+    public byte[] loadPicture(int pictureID) {
+        File image = new File(context.getFilesDir(), PREFIX+File.separator+"images"+File.separator+pictureID+".jpg");
+        if(!image.getParentFile().exists()) if(image.getParentFile().mkdirs()) Log.d("RSBS", "Successfully created /images directory.");
+        Bitmap bitmap = BitmapFactory.decodeFile(image.getPath());
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        return stream.toByteArray();
+    }
+
+    /**
+     * Gets a new available picture ID
+     * @return the ID of a new picture.
+     */
+    private int getNewPictureID() {
+        File f = new File(context.getFilesDir(), PREFIX+File.separator+"images"+File.separator);
+        if(!f.exists()) if(f.mkdirs()) Log.d("RSBS", "Successfully created /images directory.");
+        int maxID = 0;
+        File[] children = f.listFiles();
+        if(children == null || children.length == 0) return maxID;
+        for(File file : children) {
+            int newID = Integer.parseInt(file.getName().replaceAll(".jpg", ""));
+            if(newID > maxID) maxID = newID;
+        }
+        return maxID + 1;
+    }
+
     /**
      * Gets a temporary picture file for usage with the camera
      * @return returns file where the picture can be stored temporarily

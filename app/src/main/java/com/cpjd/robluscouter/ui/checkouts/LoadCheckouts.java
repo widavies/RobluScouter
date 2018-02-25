@@ -57,9 +57,14 @@ public class LoadCheckouts extends Thread {
             return;
         }
 
-            /*
-             * Remove items that shouldn't be listed
-             */
+        // Error prevention
+        for(RCheckout checkout : checkouts) {
+            if(checkout == null) return;
+        }
+
+        /*
+         * Remove items that shouldn't be listed
+         */
         RSettings settings = ioWeakReference.get().loadSettings();
         if(mode == Constants.CHECKOUTS) {
             for(RCheckout checkout : checkouts) {

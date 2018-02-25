@@ -1,5 +1,6 @@
 package com.cpjd.robluscouter.ui.bluetooth;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Bundle;
@@ -22,6 +23,7 @@ import com.cpjd.robluscouter.models.RSettings;
 import com.cpjd.robluscouter.models.RUI;
 import com.cpjd.robluscouter.sync.bluetooth.Bluetooth;
 import com.cpjd.robluscouter.ui.dialogs.FastDialogBuilder;
+import com.cpjd.robluscouter.utils.Utils;
 
 import java.util.ArrayList;
 
@@ -49,8 +51,8 @@ public class BTDeviceSelector extends AppCompatActivity implements Bluetooth.Blu
 
         bluetooth = new Bluetooth(BTDeviceSelector.this);
         bluetooth.setListener(this);
-        bluetooth.enable();
-        bluetooth.startScanning();
+        if(bluetooth.isEnabled()) bluetooth.startScanning();
+        else bluetooth.enable();
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -73,38 +75,34 @@ public class BTDeviceSelector extends AppCompatActivity implements Bluetooth.Blu
 
     @Override
     public void deviceDiscovered(BluetoothDevice device) {
-        Log.d("RSBS", "Found device: "+device.getName());
         adapter.addDevice(device);
     }
 
     @Override
-    public void messageReceived(String header, String message) {
-
-    }
+    public void messageReceived(String header, String message) {}
 
     @Override
-    public void deviceConnected(BluetoothDevice device) {
-
-    }
+    public void deviceConnected(BluetoothDevice device) {}
 
     @Override
-    public void deviceDisconnected(BluetoothDevice device, String reason) {
-
-    }
+    public void deviceDisconnected(BluetoothDevice device, String reason) {}
 
     @Override
     public void errorOccurred(String message) {
-
+        Utils.showSnackbar(findViewById(R.id.main_layout), getApplicationContext(), "An error occurred: "+message, true, 0);
+        Log.d("RSBS", "Bluetooth: An error occurred: "+message);
     }
 
     @Override
     public void stateChanged(int state) {
-
+        if(state == BluetoothAdapter.STATE_ON) {
+            bluetooth.startScanning();
+        }
     }
 
     @Override
     public void discoveryStopped() {
-
+        bluetooth.startScanning();
     }
 
     private class DevicesAdapter extends RecyclerView.Adapter<DevicesAdapter.ViewHolder> {
@@ -122,7 +120,7 @@ public class BTDeviceSelector extends AppCompatActivity implements Bluetooth.Blu
             rui = new IO(context).loadSettings().getRui();
         }
 
-        public void addDevice(BluetoothDevice device) {
+        void addDevice(BluetoothDevice device) {
             devices.add(device);
             notifyItemInserted(devices.size() - 1);
         }
@@ -161,6 +159,8 @@ public class BTDeviceSelector extends AppCompatActivity implements Bluetooth.Blu
                             .setMessage("Device "+device.getName()+" was added to the sync list. Every time you press \"Sync with Bluetooth\", Roblu Scouter will attempt to connect to this device. You may add as many devices as you'd like")
                             .setPositiveButtonText("Yes")
                             .build(BTDeviceSelector.this);
+
+                    Toast.makeText(getApplicationContext(), "Please accept the pair request on both devices.", Toast.LENGTH_LONG).show();
                 }
             });
             return holder;
@@ -199,7 +199,6 @@ public class BTDeviceSelector extends AppCompatActivity implements Bluetooth.Blu
                     this.title.setBackgroundColor(rui.getCardColor());
                     this.subtitle.setBackgroundColor(rui.getCardColor());
                 }
-
             }
         }
     }
