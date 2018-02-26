@@ -136,7 +136,7 @@ public class Service extends android.app.Service {
         }
 
         // Upload completed checkouts
-        uploadCompletedCheckouts(io, settings, checkoutRequest, mapper, cloudSettings);
+        uploadCompletedCheckouts(io, settings, checkoutRequest, mapper);
 
         /*
          * Fetch checkouts
@@ -193,8 +193,8 @@ public class Service extends android.app.Service {
                  * Run the auto-assignment checkout task
                  */
                 new AutoCheckoutTask(null, new IO(getApplicationContext()),settings, refList).start();
+
                 cloudSettings.setLastCheckoutSync(maxTimestamp);
-                io.saveCloudSettings(cloudSettings);
                 io.saveCloudSettings(cloudSettings);
                 Log.d("Service-RSBS", "Successfully pulled "+checkouts.length+" checkouts.");
 
@@ -212,7 +212,7 @@ public class Service extends android.app.Service {
         io.saveCloudSettings(cloudSettings);
     }
 
-    private void uploadCompletedCheckouts(IO io, RSettings settings, CloudCheckoutRequest checkoutRequest, ObjectMapper mapper, RCloudSettings cloudSettings) {
+    private void uploadCompletedCheckouts(IO io, RSettings settings, CloudCheckoutRequest checkoutRequest, ObjectMapper mapper) {
         /*
          * Upload completed checkouts
          */
@@ -270,8 +270,6 @@ public class Service extends android.app.Service {
                             anyCompleted = true;
                         }
                     }
-                    cloudSettings.setLastCheckoutSync(System.currentTimeMillis());
-                    io.saveCloudSettings(cloudSettings);
                     /*
                      * Only notify the user if checkouts with status == completed where uploaded
                      */

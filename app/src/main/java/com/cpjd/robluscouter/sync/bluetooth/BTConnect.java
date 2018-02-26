@@ -12,6 +12,7 @@ import com.cpjd.robluscouter.models.RForm;
 import com.cpjd.robluscouter.models.RSettings;
 import com.cpjd.robluscouter.models.RTab;
 import com.cpjd.robluscouter.models.RUI;
+import com.cpjd.robluscouter.models.metrics.RGallery;
 import com.cpjd.robluscouter.notifications.Notify;
 import com.cpjd.robluscouter.sync.cloud.AutoCheckoutTask;
 import com.cpjd.robluscouter.utils.HandoffStatus;
@@ -178,7 +179,19 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
                         t.setEdits(edits);
                     }
                 }
+                    /*
+                     * Pack images
+                     */
+                for(RTab tab : checkout.getTeam().getTabs()) {
+                    for(int i = 0; tab.getMetrics() != null && i < tab.getMetrics().size(); i++) {
+                        if(!(tab.getMetrics().get(i) instanceof RGallery)) continue;
 
+                        ((RGallery)tab.getMetrics().get(i)).setImages(new ArrayList<byte[]>());
+                        for(int j = 0; ((RGallery)tab.getMetrics().get(i)).getPictureIDs() != null && j < ((RGallery)tab.getMetrics().get(i)).getPictureIDs().size(); j++) {
+                            ((RGallery)tab.getMetrics().get(i)).getImages().add(io.loadPicture(((RGallery)tab.getMetrics().get(i)).getPictureIDs().get(j)));
+                        }
+                    }
+                }
                 if(checkout.getStatus() == HandoffStatus.COMPLETED) {
                     toUpload.add(checkout);
                 }
@@ -229,9 +242,28 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
                 for(int i = 0; i < array.size(); i++) {
                     String s = array.get(i).toString();
                     RCheckout checkout = mapper.readValue(s, RCheckout.class);
+                    // Unpack images
+                    /*
+                     * Unpack images
+                     */
+                    for(RTab tab : checkout.getTeam().getTabs()) {
+                        for(int l = 0; tab.getMetrics() != null && l < tab.getMetrics().size(); l++) {
+                            if(!(tab.getMetrics().get(l) instanceof RGallery)) continue;
+
+                            ((RGallery)tab.getMetrics().get(i)).setPictureIDs(new ArrayList<Integer>());
+                            for(int j = 0; ((RGallery)tab.getMetrics().get(l)).getImages() != null && j < ((RGallery)tab.getMetrics().get(l)).getImages().size(); j++) {
+                                ((RGallery)tab.getMetrics().get(l)).getPictureIDs().add(io.savePicture(((RGallery)tab.getMetrics().get(l)).getImages().get(j)));
+                            }
+                            // Set metrics to null
+                            ((RGallery)tab.getMetrics().get(l)).setImages(null);
+                        }
+                    }
+
                     refList.add(checkout);
                     io.saveCheckout(checkout);
                 }
+
+
 
                 /*
                  * Run the auto-assignment checkout task

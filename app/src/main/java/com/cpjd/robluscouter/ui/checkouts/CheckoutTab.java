@@ -21,6 +21,7 @@ import com.cpjd.robluscouter.models.RCheckout;
 import com.cpjd.robluscouter.models.RSettings;
 import com.cpjd.robluscouter.ui.team.TeamViewer;
 import com.cpjd.robluscouter.utils.Constants;
+import com.cpjd.robluscouter.utils.HandoffStatus;
 
 import java.util.ArrayList;
 
@@ -107,6 +108,9 @@ public class CheckoutTab extends Fragment implements CheckoutClickListener, Load
      */
     @Override
     public void checkoutClicked(View v) {
+        // Disable editing while upload pending
+        if(adapter.getCheckouts().get(recyclerView.getChildAdapterPosition(v)).getStatus() == HandoffStatus.COMPLETED && mode == Constants.MY_CHECKOUTS) return;
+
         Intent intent = new Intent(getActivity(), TeamViewer.class);
         intent.putExtra("checkout", adapter.getCheckouts().get(recyclerView.getChildAdapterPosition(v)).getID());
         if(mode == Constants.CHECKOUTS) {

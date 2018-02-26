@@ -199,7 +199,15 @@ public class AdvSettings extends AppCompatActivity{
                     Utils.showSnackbar(getActivity().findViewById(R.id.advsettings), getActivity(), "You are not connected to the internet.", true, 0);
                     return false;
                 }
-                settings.setCode(o.toString());
+               Request r = new Request(settings.getServerIP());
+
+               if(r.ping() && new CloudTeamRequest(r, o.toString()).getTeam(-1) != null) {
+                   Utils.showSnackbar(getActivity().findViewById(R.id.advsettings), getActivity(), "Successfully joined team.", false, settings.getRui().getPrimaryColor());
+               } else if(r.ping() && new CloudTeamRequest(r, o.toString()).getTeam(-1) == null){
+                   Utils.showSnackbar(getActivity().findViewById(R.id.advsettings), getActivity(), "Team code not found on server.", true, settings.getRui().getPrimaryColor());
+               }
+
+               settings.setCode(o.toString());
            }
            // user selected auto checkouts option
            else if(preference.getKey().equalsIgnoreCase("auto_checkouts")) {
@@ -214,15 +222,6 @@ public class AdvSettings extends AppCompatActivity{
                } else settings.setServerIP(o.toString());
            }
            else if(preference.getKey().equals("username")) {
-               // Check if the username is valid with the server
-               Request r = new Request(settings.getServerIP());
-
-               if(r.ping() && new CloudTeamRequest(r, o.toString()).getTeam(-1) != null) {
-                   Utils.showSnackbar(getActivity().findViewById(R.id.advsettings), getActivity(), "Successfully joined team.", false, settings.getRui().getPrimaryColor());
-               } else if(r.ping() && new CloudTeamRequest(r, o.toString()).getTeam(-1) == null){
-                   Utils.showSnackbar(getActivity().findViewById(R.id.advsettings), getActivity(), "Team code not found on server.", true, settings.getRui().getPrimaryColor());
-               }
-
                settings.setName(o.toString());
            }
             new IO(getActivity()).saveSettings(settings);

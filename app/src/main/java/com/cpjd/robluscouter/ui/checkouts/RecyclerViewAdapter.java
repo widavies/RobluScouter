@@ -174,13 +174,15 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         private void bindCheckoutToView(RCheckout handoff){
             if(handoff == null || handoff.getTeam() == null) return;
 
+            title.setTextSize(20f);
+
             if(mode == Constants.MY_CHECKOUTS || mode == Constants.CHECKOUTS) {
                 title.setText(handoff.getTeam().getName());
                 number.setText("#"+handoff.getTeam().getNumber());
                 String subtitleText = handoff.getTeam().getTabs().get(0).getTitle()+"\n"+ HandoffStatus.statusToString(handoff);
                 if(mode == Constants.MY_CHECKOUTS && handoff.getStatus() == HandoffStatus.COMPLETED) subtitleText+="\nUpload pending";
                 subtitle.setText(subtitleText);
-                subtitle.setTextSize(14f);
+                subtitle.setTextSize(15f);
             } else if(mode == Constants.MY_MATCHES) {
                 title.setText(handoff.getTeam().getTabs().get(0).getTitle());
                 number.setText("#"+handoff.getTeam().getNumber());

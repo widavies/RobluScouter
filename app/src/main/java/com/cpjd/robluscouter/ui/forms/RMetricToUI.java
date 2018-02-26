@@ -853,6 +853,7 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         final RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         if(buttons.size() != 0) params.addRule(RelativeLayout.BELOW, buttons.get(buttons.size() - 1).getId());
         else params.addRule(RelativeLayout.BELOW, playButton.getId());
+        b.setTextColor(rui.getText());
         b.setLayoutParams(params);
         b.setOnClickListener(new View.OnClickListener() {
             @Override

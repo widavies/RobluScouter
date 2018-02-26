@@ -71,8 +71,8 @@ public class SetupActivity extends FragmentActivity implements View.OnClickListe
     }
 
     public void setupFinished() {
-        startActivity(new Intent(this, CheckoutsView.class));
         finish();
+        startActivity(new Intent(this, CheckoutsView.class));
     }
 
     @Override
