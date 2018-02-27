@@ -72,6 +72,8 @@ public class RTeam implements Serializable {
      * In order to make the user base happier by downloading less data,
      * TBA data is only downloaded once. Roblu can infer whether the download
      * happened by checking the below data.
+     *
+     * These aren't used by RobluScouter
      */
     private String fullName, location, motto, website;
     private int rookieYear;

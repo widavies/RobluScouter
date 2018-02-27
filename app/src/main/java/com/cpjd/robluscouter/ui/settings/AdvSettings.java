@@ -10,6 +10,7 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 
 import com.cpjd.http.Request;
@@ -202,6 +203,7 @@ public class AdvSettings extends AppCompatActivity{
                Request r = new Request(settings.getServerIP());
 
                if(r.ping() && new CloudTeamRequest(r, o.toString()).getTeam(-1) != null) {
+                   Log.d("RSBS", "Successfully joined team!");
                    Utils.showSnackbar(getActivity().findViewById(R.id.advsettings), getActivity(), "Successfully joined team.", false, settings.getRui().getPrimaryColor());
                } else if(r.ping() && new CloudTeamRequest(r, o.toString()).getTeam(-1) == null){
                    Utils.showSnackbar(getActivity().findViewById(R.id.advsettings), getActivity(), "Team code not found on server.", true, settings.getRui().getPrimaryColor());

@@ -3,4 +3,7 @@
     <item
         android:id="@+id/won"
         android:title="Mark as won"/>
+    <item
+        android:id="@+id/qr"
+        android:title="Generate QR"/>
 </menu>

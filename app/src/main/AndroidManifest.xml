@@ -72,6 +72,7 @@
         <activity android:name=".ui.images.FullScreenImageGalleryActivity"/>
         <activity android:name=".ui.images.ImageGalleryActivity"/>
         <activity android:name=".ui.bluetooth.BTDeviceSelector"/>
+        <activity android:name=".sync.qr.PackageQRCheckout"/>
     </application>
 
 </manifest>

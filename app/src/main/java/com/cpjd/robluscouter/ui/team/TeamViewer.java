@@ -29,6 +29,7 @@ import com.cpjd.robluscouter.models.RForm;
 import com.cpjd.robluscouter.models.RUI;
 import com.cpjd.robluscouter.models.metrics.RFieldDiagram;
 import com.cpjd.robluscouter.models.metrics.RMetric;
+import com.cpjd.robluscouter.sync.qr.PackageQRCheckout;
 import com.cpjd.robluscouter.ui.UIHandler;
 import com.cpjd.robluscouter.ui.images.Drawing;
 import com.cpjd.robluscouter.ui.images.ImageGalleryActivity;
@@ -160,6 +161,11 @@ public class TeamViewer extends AppCompatActivity {
                         popup.dismiss();
                         new IO(getApplicationContext()).saveMyCheckout(checkout);
                     }
+                }
+                else if(item.getItemId() == R.id.qr) {
+                    Intent intent = new Intent(TeamViewer.this, PackageQRCheckout.class);
+                    intent.putExtra("checkoutID", checkout.getID());
+                    startActivity(intent);
                 }
                 return true;
             }

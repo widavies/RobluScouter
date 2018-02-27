@@ -165,7 +165,7 @@ public class Drawing extends AppCompatActivity implements ColorPickerDialogListe
                     canvas.setDrawer(CanvasView.Drawer.PEN);
                     return true;
                 } else if(item.getItemId() == R.id.eraser) {
-                    canvas.setMode(CanvasView.Mode.ERASER);
+                    canvas.clear();
                     return true;
                 }
                 else if(item.getItemId() == R.id.line) {
