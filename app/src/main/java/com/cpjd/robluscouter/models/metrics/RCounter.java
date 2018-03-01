@@ -36,6 +36,11 @@ public class RCounter extends RMetric {
     private double increment;
 
     /**
+     * If true, this class will just load a textfield that is numerical only
+     */
+    private boolean verboseInput;
+
+    /**
      * The empty constructor is required for de-serialization
      */
     @SuppressWarnings("unused")
@@ -85,6 +90,7 @@ public class RCounter extends RMetric {
     @Override
     public RMetric clone() {
         RCounter counter = new RCounter(ID, title, increment, value);
+        counter.setVerboseInput(verboseInput);
         counter.setRequired(required);
         return counter;
     }

@@ -18,12 +18,15 @@ import com.cpjd.robluscouter.models.metrics.RFieldDiagram;
 import com.cpjd.robluscouter.models.metrics.RGallery;
 import com.cpjd.robluscouter.models.metrics.RMetric;
 import com.cpjd.robluscouter.utils.HandoffStatus;
-import com.jiechic.library.android.snappy.Snappy;
 
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Packages 1 checkout into a QR code and displays it.
@@ -74,7 +77,7 @@ public class PackageQRCheckout extends AppCompatActivity {
                     ((RGallery) metric).setPictureIDs(null);
                     ((RGallery) metric).setImages(null);
                 } else if(metric instanceof RFieldDiagram) {
-                    //((RFieldDiagram) metric).setDrawings(null);
+                    ((RFieldDiagram) metric).setDrawings(null);
                 }
             }
 
@@ -104,8 +107,9 @@ public class PackageQRCheckout extends AppCompatActivity {
                 try {
                     // Compress string
                     String serial = mapper.writeValueAsString(toExport);
-                    byte[] data = Snappy.compress(serial.getBytes("UTF-8"));
-                    QrCode code = QrCode.encodeBinary(data, QrCode.Ecc.LOW);
+                    byte[] data = compress(serial);
+                    Log.d("RBS", "Here: "+new String(data, "UTF-8")+"END");
+                    QrCode code = QrCode.encodeBinary(data, QrCode.Ecc.HIGH);
                     final Bitmap b = code.toImage(5, 2);
                     runOnUiThread(new Runnable() {
                         @Override
@@ -120,6 +124,19 @@ public class PackageQRCheckout extends AppCompatActivity {
             }
         }).start();
 
+    }
+
+    private byte[] compress(String data) throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream())
+        {
+            try (GZIPOutputStream gzip = new GZIPOutputStream(out))
+            {
+                gzip.write(data.getBytes(StandardCharsets.UTF_8));
+            }
+            return out.toByteArray();
+            //return out.toString(StandardCharsets.ISO_8859_1);
+            // Some single byte encoding
+        }
     }
 
     @Override
