@@ -76,9 +76,7 @@ public class RTextfield extends RMetric {
 
     @Override
     public RMetric clone() {
-        RTextfield textfield = new RTextfield(ID, title, numericalOnly, oneLine, text);
-        textfield.setRequired(required);
-        return textfield;
+        return new RTextfield(ID, title, numericalOnly, oneLine, text);
     }
 
 }

@@ -90,7 +90,6 @@ public class IO {
         return false;
     }
 
-
     /**
      * Load a cloud settings object from internal storage
      * @return RCloudSettings object instance
@@ -304,6 +303,10 @@ public class IO {
                 delete(f);
             }
         }
+
+        delete(new File(PREFIX + File.separator+"settings.ser"));
+        delete(new File(PREFIX + File.separator+"cloudSettings.ser"));
+
     }
 
 

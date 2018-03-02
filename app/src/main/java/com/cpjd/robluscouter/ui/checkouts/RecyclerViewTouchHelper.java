@@ -7,6 +7,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
+import android.widget.Toast;
 
 import com.cpjd.robluscouter.R;
 import com.cpjd.robluscouter.io.IO;
@@ -86,6 +87,15 @@ public class RecyclerViewTouchHelper extends ItemTouchHelper.SimpleCallback {
         }
         // The checkout model was swiped to the RIGHT, that means the user wants to upload the checkout, they're done with it
         else if(direction == ItemTouchHelper.RIGHT) {
+            /*
+             * Disallow checking out checkouts without a team code
+             */
+            if(settings.getCode() == null || settings.getCode().equals("")) {
+                Toast.makeText(checkoutsAdapter.getContext(), "Unable to complete a checkout without a team code specified in settings.", Toast.LENGTH_LONG).show();
+                checkoutsAdapter.reAdd(checkout);
+                return;
+            }
+
             /*
              * Run a verification check - the user shouldn't be able to check out items greater than index > 0 in the adapter,
              * unless the items before it are upload pending

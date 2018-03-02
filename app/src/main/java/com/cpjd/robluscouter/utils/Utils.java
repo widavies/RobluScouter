@@ -241,4 +241,6 @@ public class Utils {
         ((Activity) context).getWindowManager().getDefaultDisplay().getSize(size);
         return size.x;
     }
+
+
 }

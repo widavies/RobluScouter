@@ -2,6 +2,7 @@ package com.cpjd.robluscouter.ui.forms;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -9,10 +10,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.CompoundButtonCompat;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.AppCompatRadioButton;
@@ -131,12 +134,23 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
 
         yes.setEnabled(editable);
         no.setEnabled(editable);
-
-        //yes.setSupportButtonTintList(colorStateList);
-        //no.setSupportButtonTintList(colorStateList);
+        ColorStateList colorStateList = new ColorStateList(
+                new int[][] {
+                        new int[] { -android.R.attr.state_checked }, // unchecked
+                        new int[] {  android.R.attr.state_checked }  // checked
+                },
+                new int[] {
+                        rui.getButtons(),
+                        rui.getAccent()
+                }
+        );
+        CompoundButtonCompat.setButtonTintList(yes, colorStateList);
+        CompoundButtonCompat.setButtonTintList(no, colorStateList);
         group.setId(Utils.generateViewId());
         yes.setId(Utils.generateViewId());
         no.setId(Utils.generateViewId());
+        yes.setTextColor(rui.getText());
+        no.setTextColor(rui.getText());
         yes.setText(R.string.yes);
         no.setText(R.string.no);
 
@@ -521,7 +535,7 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
             spinner.setSelection(chooser.getSelectedIndex());
         }
 
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+        RelativeLayout.LayoutParams params;
 
         // Observed field
         final TextView observed = new TextView(activity);
@@ -642,7 +656,17 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
                 box.setChecked(checkbox.getValues().get(o.toString()));
                 box.setEnabled(editable);
                 box.setLayoutParams(params);
-                //box.setSupportButtonTintList(colorStateList);
+                ColorStateList colorStateList = new ColorStateList(
+                        new int[][] {
+                                new int[] { -android.R.attr.state_checked }, // unchecked
+                                new int[] {  android.R.attr.state_checked }  // checked
+                        },
+                        new int[] {
+                                rui.getButtons(),
+                                rui.getAccent()
+                        }
+                );
+                CompoundButtonCompat.setButtonTintList(box, colorStateList);
                 box.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
                     public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -679,7 +703,7 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         imageView.setAdjustViewBounds(true);
 
         // Get field diagram
-        final Bitmap field = BitmapFactory.decodeResource(activity.getResources(), fieldDiagram.getPictureID());
+        final Bitmap field = BitmapFactory.decodeResource(activity.getResources(), R.drawable.field2018);
 
         // Get drawings
         if(fieldDiagram.getDrawings() != null) {
@@ -919,6 +943,7 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         else params.addRule(RelativeLayout.BELOW, playButton.getId());
         b.setTextColor(rui.getText());
         b.setLayoutParams(params);
+        b.getBackground().mutate().setColorFilter(new PorterDuffColorFilter(RUI.darker(rui.getCardColor(), 0.75f), PorterDuff.Mode.SRC));
         b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -941,7 +966,7 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
                                 for(int i = 0; i < buttons.size(); i++) {
                                     final RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
                                     if(i == 0) params.addRule(RelativeLayout.BELOW, playButton.getId());
-                                    else params.addRule(RelativeLayout.BELOW, buttons.get(buttons.size() - 1).getId());
+                                    else params.addRule(RelativeLayout.BELOW, buttons.get(i - 1).getId());
                                     buttons.get(i).setLayoutParams(params);
                                 }
 

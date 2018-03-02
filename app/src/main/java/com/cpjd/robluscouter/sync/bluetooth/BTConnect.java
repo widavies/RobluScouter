@@ -171,7 +171,7 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
         ArrayList<RCheckout> toUpload = new ArrayList<>();
         if(checkouts != null) {
             for(RCheckout checkout : checkouts) {
-                if(checkout.getStatus() == HandoffStatus.COMPLETED && checkout.getTeam().getLastEdit() > 0) {
+                if(checkout.getStatus() == HandoffStatus.COMPLETED && checkout.getTeam().getLastEdit() > 0) { //TODO possibly more restrictions on this
                     for(RTab t : checkout.getTeam().getTabs()) {
                         LinkedHashMap<String, Long> edits = t.getEdits();
                         if(edits == null) edits = new LinkedHashMap<>();

@@ -201,14 +201,12 @@ public class AdvSettings extends AppCompatActivity{
                     return false;
                 }
                Request r = new Request(settings.getServerIP());
-
                if(r.ping() && new CloudTeamRequest(r, o.toString()).getTeam(-1) != null) {
                    Log.d("RSBS", "Successfully joined team!");
                    Utils.showSnackbar(getActivity().findViewById(R.id.advsettings), getActivity(), "Successfully joined team.", false, settings.getRui().getPrimaryColor());
                } else if(r.ping() && new CloudTeamRequest(r, o.toString()).getTeam(-1) == null){
                    Utils.showSnackbar(getActivity().findViewById(R.id.advsettings), getActivity(), "Team code not found on server.", true, settings.getRui().getPrimaryColor());
                }
-
                settings.setCode(o.toString());
            }
            // user selected auto checkouts option

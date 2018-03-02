@@ -59,7 +59,6 @@ public class RChooser extends RMetric {
     @Override
     public RMetric clone() {
         RChooser chooser = new RChooser(ID, title, values, selectedIndex);
-        chooser.setRequired(required);
         return chooser;
     }
 }

@@ -62,7 +62,6 @@ public class RCheckbox extends RMetric {
     @Override
     public RMetric clone() {
         RCheckbox checkbox = new RCheckbox(ID, title, (LinkedHashMap<String, Boolean>)values.clone());
-        checkbox.setRequired(required);
         return checkbox;
     }
 }

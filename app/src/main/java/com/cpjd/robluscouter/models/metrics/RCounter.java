@@ -91,7 +91,6 @@ public class RCounter extends RMetric {
     public RMetric clone() {
         RCounter counter = new RCounter(ID, title, increment, value);
         counter.setVerboseInput(verboseInput);
-        counter.setRequired(required);
         return counter;
     }
     @Override

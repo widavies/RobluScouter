@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.cpjd.robluscouter.R;
+import com.cpjd.robluscouter.io.IO;
 import com.cpjd.robluscouter.models.RCheckout;
 import com.cpjd.robluscouter.models.RSettings;
 import com.cpjd.robluscouter.models.RUI;
@@ -180,7 +181,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 title.setText(handoff.getTeam().getName());
                 number.setText("#"+handoff.getTeam().getNumber());
                 String subtitleText = handoff.getTeam().getTabs().get(0).getTitle()+"\n"+ HandoffStatus.statusToString(handoff);
-                if(mode == Constants.MY_CHECKOUTS && handoff.getStatus() == HandoffStatus.COMPLETED) subtitleText+="\nUpload pending";
+                if(mode == Constants.MY_CHECKOUTS && handoff.getStatus() == HandoffStatus.COMPLETED) {
+                    RSettings settings = new IO(context).loadSettings();
+                    if(settings.getCode() == null || settings.getCode().equals("")) subtitleText+="\nSynced with Bluetooth";
+                    else subtitleText+="\nUpload pending";
+                }
                 subtitle.setText(subtitleText);
                 subtitle.setTextSize(15f);
             } else if(mode == Constants.MY_MATCHES) {
