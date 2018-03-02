@@ -133,6 +133,10 @@ public class CheckoutEncoder {
         try {
             String[] lines = string.split("\n");
 
+            for(String s : lines) {
+                Log.d("RBS", "Line: "+s);
+            }
+
             // Meta
             RCheckout checkout = new RCheckout();
             checkout.setID(Integer.parseInt(lines[0]));
@@ -145,8 +149,6 @@ public class CheckoutEncoder {
             // Tabs
             for(int i = 0; i < lines.length; i++) {
                 if(!lines[i].startsWith("TAB")) continue;
-
-                if(lines[i].startsWith("null")) continue;
 
                 // Tab meta
                 RTab tab = new RTab();
@@ -161,8 +163,10 @@ public class CheckoutEncoder {
                 tab.setEdits(edits);
 
                 // Metrics
-                for(int k = 3; k < lines.length; k++) {
-                    if(!lines[k].startsWith("TAB")) break;
+                for(int k = i + 1; k < lines.length; k++) {
+                    if(lines[k].startsWith("TAB")) break;
+
+                    if(lines[i].startsWith("null")) continue;
 
                     String[] mTokens = lines[k].split(String.valueOf(DELIMITER));
 
@@ -196,8 +200,8 @@ public class CheckoutEncoder {
                         case "C":  // counter
                             metric = new RCounter();
                             ((RCounter) metric).setVerboseInput(Boolean.parseBoolean(mTokens[4]));
-                            ((RCounter) metric).setValue(Integer.parseInt(mTokens[5]));
-                            ((RCounter) metric).setIncrement(Integer.parseInt(mTokens[6]));
+                            ((RCounter) metric).setValue(Double.parseDouble(mTokens[5]));
+                            ((RCounter) metric).setIncrement(Double.parseDouble(mTokens[6]));
                             break;
                         case "S":  // slider
                             metric = new RSlider();
@@ -223,6 +227,8 @@ public class CheckoutEncoder {
                         metric.setTitle(mTokens[2]);
                         metric.setModified(Boolean.parseBoolean(mTokens[3]));
                         tab.getMetrics().add(metric);
+                        // Adding metric
+                        Log.d("RBS", "Adding metric "+metric.toString());
                     }
                 }
                 team.getTabs().add(tab);
@@ -231,7 +237,7 @@ public class CheckoutEncoder {
             return checkout;
         } catch(Exception e) {
             e.printStackTrace();
-            Log.d("RBS", "An error occurred while decoding a checkout.");
+            Log.d("RBS", "An error occurred while decoding a checkout. "+e.getMessage());
             return null;
         }
     }
@@ -249,7 +255,7 @@ public class CheckoutEncoder {
         else if(metric instanceof RDivider) return "D";
         else if(metric instanceof RSlider) return "S";
         else if(metric instanceof RStopwatch) return "ST";
-        else if(metric instanceof RTextfield) return "T";
+        else if(metric instanceof RTextfield && !(((RTextfield) metric).isOneLine())) return "T";
         else return "null";
     }
 }
