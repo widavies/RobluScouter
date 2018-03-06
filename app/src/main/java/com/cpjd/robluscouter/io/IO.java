@@ -6,7 +6,7 @@ import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import com.cpjd.robluscouter.models.RCheckout;
-import com.cpjd.robluscouter.models.RCloudSettings;
+import com.cpjd.robluscouter.models.RSyncSettings;
 import com.cpjd.robluscouter.models.RForm;
 import com.cpjd.robluscouter.models.RSettings;
 import com.cpjd.robluscouter.models.RUI;
@@ -83,7 +83,7 @@ public class IO {
         if(settings == null) {
             settings = new RSettings();
             settings.setRui(new RUI());
-            new IO(context).saveCloudSettings(new RCloudSettings());
+            new IO(context).saveCloudSettings(new RSyncSettings());
             new IO(context).saveSettings(settings);
             return true;
         }
@@ -92,22 +92,17 @@ public class IO {
 
     /**
      * Load a cloud settings object from internal storage
-     * @return RCloudSettings object instance
+     * @return RSyncSettings object instance
      */
-    public RCloudSettings loadCloudSettings() {
-        RCloudSettings cloudSettings = (RCloudSettings) deserializeObject(PREFIX+File.separator+"cloudSettings.ser");
-        if(cloudSettings == null) {
-            cloudSettings = new RCloudSettings();
-            saveCloudSettings(cloudSettings);
-        }
-        return cloudSettings;
+    public synchronized RSyncSettings loadCloudSettings() {
+        return (RSyncSettings) deserializeObject(PREFIX+File.separator+"cloudSettings.ser");
     }
 
     /**
      * Save a cloud settings reference to internal storage
-     * @param settings RCloudSettings object instance
+     * @param settings RSyncSettings object instance
      */
-    public void saveCloudSettings(RCloudSettings settings) {
+    public void saveCloudSettings(RSyncSettings settings) {
         serializeObject(settings, PREFIX+File.separator+"cloudSettings.ser");
     }
 

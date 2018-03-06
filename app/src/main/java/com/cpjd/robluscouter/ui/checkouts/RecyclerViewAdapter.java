@@ -183,8 +183,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 String subtitleText = handoff.getTeam().getTabs().get(0).getTitle()+"\n"+ HandoffStatus.statusToString(handoff);
                 if(mode == Constants.MY_CHECKOUTS && handoff.getStatus() == HandoffStatus.COMPLETED) {
                     RSettings settings = new IO(context).loadSettings();
-                    if(settings.getCode() == null || settings.getCode().equals("")) subtitleText+="\nSynced with Bluetooth";
-                    else subtitleText+="\nUpload pending";
+                    subtitleText+="\nUpload pending";
                 }
                 subtitle.setText(subtitleText);
                 subtitle.setTextSize(15f);

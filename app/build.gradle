@@ -7,8 +7,8 @@ android {
         applicationId "com.cpjd.robluscouter"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 18
-        versionName "4.3.0"
+        versionCode 19
+        versionName "4.3.5"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {

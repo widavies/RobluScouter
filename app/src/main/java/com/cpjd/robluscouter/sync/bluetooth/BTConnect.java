@@ -7,14 +7,14 @@ import android.util.Log;
 
 import com.cpjd.robluscouter.io.IO;
 import com.cpjd.robluscouter.models.RCheckout;
-import com.cpjd.robluscouter.models.RCloudSettings;
 import com.cpjd.robluscouter.models.RForm;
 import com.cpjd.robluscouter.models.RSettings;
+import com.cpjd.robluscouter.models.RSyncSettings;
 import com.cpjd.robluscouter.models.RTab;
 import com.cpjd.robluscouter.models.RUI;
 import com.cpjd.robluscouter.models.metrics.RGallery;
 import com.cpjd.robluscouter.notifications.Notify;
-import com.cpjd.robluscouter.sync.cloud.AutoCheckoutTask;
+import com.cpjd.robluscouter.sync.SyncHelper;
 import com.cpjd.robluscouter.utils.HandoffStatus;
 import com.cpjd.robluscouter.utils.Utils;
 
@@ -198,6 +198,14 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
 
                 try {
                     bluetooth.send("SCOUTING_DATA", mapper.writeValueAsString(toUpload));
+
+                    /*
+                     * Delete the checkouts from "MyCheckouts"
+                     */
+                    for(RCheckout ch : toUpload) {
+                        io.deleteMyCheckout(ch.getID());
+                    }
+
                     Notify.notifyNoAction(bluetooth.getActivity(), "Sent checkouts successfully", "Successfully sent "+checkouts.size()+" checkouts to target device over Bluetooth.");
                 } catch(Exception e) {
                     Log.d("RSBS", "Failed to send completed checkouts.");
@@ -207,7 +215,7 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
 
         bluetooth.send("requestForm", "noParams");
         bluetooth.send("requestUI", "noParams");
-        bluetooth.send("requestCheckouts", "time:"+new IO(bluetooth.getActivity()).loadCloudSettings().getLastCheckoutSync());
+        bluetooth.send("requestCheckouts", "time:"+new IO(bluetooth.getActivity()).loadCloudSettings().getLastBluetoothCheckoutSync());
         bluetooth.send("requestNumber", "noParams");
         bluetooth.send("requestEventName", "noParams");
         bluetooth.send("DONE", "noParams");
@@ -238,58 +246,23 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
             try {
                 JSONParser parser = new JSONParser();
                 JSONArray array = (JSONArray)parser.parse(message);
-                ArrayList<RCheckout> refList = new ArrayList<>();
-                for(int i = 0; i < array.size(); i++) {
-                    String s = array.get(i).toString();
-                    RCheckout checkout = mapper.readValue(s, RCheckout.class);
-                    // Unpack images
-                    /*
-                     * Unpack images
-                     */
-                    for(RTab tab : checkout.getTeam().getTabs()) {
-                        for(int l = 0; tab.getMetrics() != null && l < tab.getMetrics().size(); l++) {
-                            if(!(tab.getMetrics().get(l) instanceof RGallery)) continue;
+                String[] received = new String[array.size()];
+                for(int i = 0; i < array.size(); i++) received[i] = array.get(i).toString();
 
-                            ((RGallery)tab.getMetrics().get(i)).setPictureIDs(new ArrayList<Integer>());
-                            for(int j = 0; ((RGallery)tab.getMetrics().get(l)).getImages() != null && j < ((RGallery)tab.getMetrics().get(l)).getImages().size(); j++) {
-                                ((RGallery)tab.getMetrics().get(l)).getPictureIDs().add(io.savePicture(((RGallery)tab.getMetrics().get(l)).getImages().get(j)));
-                            }
-                            // Set metrics to null
-                            ((RGallery)tab.getMetrics().get(l)).setImages(null);
-                        }
-                    }
-
-                    refList.add(checkout);
-                    io.saveCheckout(checkout);
-                }
-
-
-
-                /*
-                 * Run the auto-assignment checkout task
-                 */
-                new AutoCheckoutTask(null, io, settings, refList).start();
-
-                RCloudSettings cloudSettings = io.loadCloudSettings();
-                cloudSettings.setLastCheckoutSync(System.currentTimeMillis());
-                io.saveCloudSettings(cloudSettings);
-
-                Utils.requestUIRefresh(bluetooth.getActivity(), false, true);
-                Notify.notifyNoAction(bluetooth.getActivity(), "Successfully pulled "+refList.size()+" checkouts.", "Roblu Scouter successfully pulled "+refList.size()+" checkouts from" +
-                        " a Bluetooth connection at "+Utils.convertTime(System.currentTimeMillis()));
-
+                SyncHelper syncHelper = new SyncHelper(bluetooth.getActivity(), SyncHelper.MODES.BLUETOOTH);
+                syncHelper.unpackCheckouts(syncHelper.convertStringSerialToCloudCheckouts(received), io.loadCloudSettings());
                 pd.dismiss();
             } catch(Exception e) {
                 Log.d("RSBS", "Failed to process checkouts received over Bluetooth.");
             }
         }
         else if(header.equals("NUMBER")) {
-            RCloudSettings cloudSettings = io.loadCloudSettings();
+            RSyncSettings cloudSettings = io.loadCloudSettings();
             cloudSettings.setTeamNumber(Integer.parseInt(message));
             io.saveCloudSettings(cloudSettings);
         }
         else if(header.equals("EVENT_NAME")) {
-            RCloudSettings cloudSettings = io.loadCloudSettings();
+            RSyncSettings cloudSettings = io.loadCloudSettings();
             cloudSettings.setEventName(message);
             io.saveCloudSettings(cloudSettings);
         }
@@ -301,7 +274,14 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
             }
         }
         else if(header.equals("DONE")) {
-
+            // Delete all completed checkouts from MyCheckouts
+            ArrayList<RCheckout> checkouts = io.loadMyCheckouts();
+            for(RCheckout checkout : checkouts) {
+                if(checkout.getStatus() == HandoffStatus.COMPLETED) {
+                    io.deleteMyCheckout(checkout.getID());
+                }
+            }
+            Utils.requestUIRefresh(bluetooth.getActivity(), true, false);
         }
     }
 

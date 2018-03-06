@@ -19,6 +19,7 @@ import com.cpjd.robluscouter.R;
 import com.cpjd.robluscouter.io.IO;
 import com.cpjd.robluscouter.models.RCheckout;
 import com.cpjd.robluscouter.models.RSettings;
+import com.cpjd.robluscouter.models.RSyncSettings;
 import com.cpjd.robluscouter.models.RUI;
 import com.cpjd.robluscouter.sync.bluetooth.BTConnect;
 import com.cpjd.robluscouter.sync.bluetooth.Bluetooth;
@@ -92,7 +93,8 @@ public class CheckoutsView extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if(getSupportActionBar() != null) {
-            getSupportActionBar().setSubtitle(new IO(getApplicationContext()).loadCloudSettings().getEventName());
+            RSyncSettings cloudSettings = new IO(getApplicationContext()).loadCloudSettings();
+            if(cloudSettings != null) getSupportActionBar().setSubtitle(cloudSettings.getEventName());
             updateActionBar();
         }
 
@@ -140,10 +142,8 @@ public class CheckoutsView extends AppCompatActivity {
             // Make sure data is persistent
             settings = new IO(getApplicationContext()).loadSettings();
 
-            if(getSupportActionBar() != null) {
-                String subtitle = new IO(getApplicationContext()).loadCloudSettings().getEventName();
-                getSupportActionBar().setSubtitle(subtitle);
-            }
+            RSyncSettings cloudSettings = new IO(getApplicationContext()).loadCloudSettings();
+            if(cloudSettings != null && getSupportActionBar() != null) getSupportActionBar().setSubtitle(cloudSettings.getEventName());
         }
     };
 
