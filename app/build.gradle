@@ -7,7 +7,7 @@ android {
         applicationId "com.cpjd.robluscouter"
         minSdkVersion 19
         targetSdkVersion 27
-        versionCode 19
+        versionCode 20
         versionName "4.3.5"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }

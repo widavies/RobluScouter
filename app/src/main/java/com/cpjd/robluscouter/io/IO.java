@@ -95,7 +95,12 @@ public class IO {
      * @return RSyncSettings object instance
      */
     public synchronized RSyncSettings loadCloudSettings() {
-        return (RSyncSettings) deserializeObject(PREFIX+File.separator+"cloudSettings.ser");
+        RSyncSettings cloudSettings = (RSyncSettings) deserializeObject( PREFIX+File.separator+"cloudSettings.ser");
+        if(cloudSettings == null) {
+            cloudSettings = new RSyncSettings();
+            saveCloudSettings(cloudSettings);
+        }
+        return cloudSettings;
     }
 
     /**
