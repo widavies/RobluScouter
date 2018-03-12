@@ -169,7 +169,7 @@ public class CheckoutsView extends AppCompatActivity {
                 startActivityForResult(new Intent(this, MyMatches.class), Constants.GENERAL);
                 break;
             case R.id.bluetooth:
-                ProgressDialog pd = ProgressDialog.show(CheckoutsView.this, "Syncing...", "Attempting to connect to sync list devices...");
+                ProgressDialog pd = ProgressDialog.show(CheckoutsView.this, "Syncing...", "Roblu Scouter is syncing with the sync list...");
                 pd.setCancelable(true);
                 pd.show();
                 new BTConnect(pd, settings, bluetooth).start();

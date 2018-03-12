@@ -5,6 +5,10 @@ import android.util.Log;
 import com.cpjd.robluscouter.io.IO;
 import com.cpjd.robluscouter.models.RCheckout;
 import com.cpjd.robluscouter.models.RSettings;
+import com.cpjd.robluscouter.models.RTab;
+import com.cpjd.robluscouter.models.metrics.RCalculation;
+import com.cpjd.robluscouter.models.metrics.RFieldData;
+import com.cpjd.robluscouter.models.metrics.RMetric;
 import com.cpjd.robluscouter.utils.HandoffStatus;
 
 import java.lang.ref.WeakReference;
@@ -34,15 +38,21 @@ public class AutoCheckoutTask extends Thread {
 
     private AutoCheckoutTaskListener listener;
 
+    /**
+     * Specifies whether checkouts that don't belong to the auto checkout mode should be unchecked out
+     */
+    private boolean uncheckout;
+
     public interface AutoCheckoutTaskListener {
         void done();
     }
 
-    public AutoCheckoutTask(AutoCheckoutTaskListener listener, IO io, RSettings settings, ArrayList<RCheckout> checkouts) {
+    public AutoCheckoutTask(AutoCheckoutTaskListener listener, IO io, RSettings settings, ArrayList<RCheckout> checkouts, boolean uncheckout) {
         this.checkouts = checkouts;
         this.settings = settings;
         this.ioWeakReference = new WeakReference<>(io);
         this.listener = listener;
+        this.uncheckout = uncheckout;
     }
 
     @Override
@@ -79,12 +89,28 @@ public class AutoCheckoutTask extends Thread {
             /*
              * First, check to see if it should be UNCHECKED out
              */
-            if(checkout.getStatus() == HandoffStatus.CHECKED_OUT && checkout.getTeam().getTabs().get(0).getAlliancePosition() != settings.getAutoAssignmentMode() &&
+            if(uncheckout && checkout.getStatus() == HandoffStatus.CHECKED_OUT && checkout.getTeam().getTabs().get(0).getAlliancePosition() != settings.getAutoAssignmentMode() &&
                     checkout.getNameTag().equals(settings.getName())) {
-                checkout.setStatus(HandoffStatus.AVAILABLE);
-                io.deleteMyCheckout(checkout.getID());
-                io.saveCheckout(checkout);
-                io.savePendingCheckout(checkout); // For the status
+
+                boolean shouldCheckout = true;
+
+                // Test to see if the metric has got some data in it, if it does, don't uncheck it out
+                loop : for(RTab tab : checkout.getTeam().getTabs()) {
+                    for(RMetric metric : tab.getMetrics()) {
+                        if(!(metric instanceof RCalculation) && !(metric instanceof RFieldData) && metric.isModified()) {
+                            shouldCheckout = false;
+                            break loop;
+                        }
+                    }
+                }
+
+                if(shouldCheckout) {
+                    checkout.setStatus(HandoffStatus.AVAILABLE);
+                    io.deleteMyCheckout(checkout.getID());
+                    io.saveCheckout(checkout);
+                    io.savePendingCheckout(checkout); // For the status
+                }
+
             }
 
             /*

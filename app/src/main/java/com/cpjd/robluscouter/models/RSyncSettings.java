@@ -49,6 +49,7 @@ public class RSyncSettings implements Serializable {
      */
     private long lastBluetoothCheckoutSync;
 
+
     public LinkedHashMap<Integer, Long> getCheckoutSyncIDs() {
         if(checkoutSyncIDs == null) this.checkoutSyncIDs = new LinkedHashMap<>();
         return checkoutSyncIDs;

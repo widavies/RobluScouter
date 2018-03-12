@@ -86,12 +86,17 @@ public class Service extends android.app.Service {
         CloudCheckoutRequest checkoutRequest = new CloudCheckoutRequest(r, settings.getCode());
         SyncHelper syncHelper = new SyncHelper(getApplicationContext(), SyncHelper.MODES.NETWORK);
 
+        if(settings.isSyncDisabled()) {
+            Log.d("Service-RBS", "Syncing is disableds. Terminating loop.");
+            return;
+        }
+
         if(!r.ping()) {
             Log.d("Service-RSBS", "Roblu server is down. Unable to connect.");
             return;
         }
 
-        if(!teamRequest.isActive()) {
+        if(!teamRequest.isActive() && settings.getCode() != null && !settings.getCode().equals("")) {
             Log.d("Service-RSBS", "No active event found. Terminating loop early.");
             io.clearCheckouts();
             cloudSettings.setEventName("");

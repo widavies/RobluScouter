@@ -10,9 +10,7 @@ import com.cpjd.robluscouter.models.RCheckout;
 import com.cpjd.robluscouter.models.RForm;
 import com.cpjd.robluscouter.models.RSettings;
 import com.cpjd.robluscouter.models.RSyncSettings;
-import com.cpjd.robluscouter.models.RTab;
 import com.cpjd.robluscouter.models.RUI;
-import com.cpjd.robluscouter.models.metrics.RGallery;
 import com.cpjd.robluscouter.notifications.Notify;
 import com.cpjd.robluscouter.sync.SyncHelper;
 import com.cpjd.robluscouter.utils.HandoffStatus;
@@ -20,11 +18,10 @@ import com.cpjd.robluscouter.utils.Utils;
 
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.json.simple.JSONArray;
-import org.json.simple.parser.JSONParser;
+import org.codehaus.jackson.map.type.TypeFactory;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * Manages a Bluetooth connection with the server and sending data to it.
@@ -170,55 +167,26 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
         ArrayList<RCheckout> checkouts = io.loadPendingCheckouts();
         ArrayList<RCheckout> toUpload = new ArrayList<>();
         if(checkouts != null) {
-            for(RCheckout checkout : checkouts) {
-                if(checkout.getStatus() == HandoffStatus.COMPLETED && checkout.getTeam().getLastEdit() > 0) { //TODO possibly more restrictions on this
-                    for(RTab t : checkout.getTeam().getTabs()) {
-                        LinkedHashMap<String, Long> edits = t.getEdits();
-                        if(edits == null) edits = new LinkedHashMap<>();
-                        edits.put(settings.getName(), System.currentTimeMillis());
-                        t.setEdits(edits);
-                    }
-                }
-                    /*
-                     * Pack images
-                     */
-                for(RTab tab : checkout.getTeam().getTabs()) {
-                    for(int i = 0; tab.getMetrics() != null && i < tab.getMetrics().size(); i++) {
-                        if(!(tab.getMetrics().get(i) instanceof RGallery)) continue;
-
-                        ((RGallery)tab.getMetrics().get(i)).setImages(new ArrayList<byte[]>());
-                        for(int j = 0; ((RGallery)tab.getMetrics().get(i)).getPictureIDs() != null && j < ((RGallery)tab.getMetrics().get(i)).getPictureIDs().size(); j++) {
-                            ((RGallery)tab.getMetrics().get(i)).getImages().add(io.loadPicture(((RGallery)tab.getMetrics().get(i)).getPictureIDs().get(j)));
-                        }
-                    }
-                }
-                if(checkout.getStatus() == HandoffStatus.COMPLETED) {
-                    toUpload.add(checkout);
+            try {
+                bluetooth.send("SCOUTING_DATA", new SyncHelper(bluetooth.getActivity(), SyncHelper.MODES.BLUETOOTH).packCheckouts(toUpload));
+                /*
+                 * Delete the checkouts from "MyCheckouts"
+                 */
+                for(RCheckout ch : toUpload) {
+                    io.deleteMyCheckout(ch.getID());
                 }
 
-                try {
-                    bluetooth.send("SCOUTING_DATA", mapper.writeValueAsString(toUpload));
-
-                    /*
-                     * Delete the checkouts from "MyCheckouts"
-                     */
-                    for(RCheckout ch : toUpload) {
-                        io.deleteMyCheckout(ch.getID());
-                    }
-
-                    Notify.notifyNoAction(bluetooth.getActivity(), "Sent checkouts successfully", "Successfully sent "+checkouts.size()+" checkouts to target device over Bluetooth.");
-                } catch(Exception e) {
-                    Log.d("RSBS", "Failed to send completed checkouts.");
-                }
+                Notify.notifyNoAction(bluetooth.getActivity(), "Sent checkouts successfully", "Successfully sent "+checkouts.size()+" checkouts to target device over Bluetooth.");
+            } catch(Exception e) {
+                Log.d("RSBS", "Failed to send completed checkouts.");
             }
-        }
+        } else bluetooth.send("SCOUTING_DATA", "noParams");
 
         bluetooth.send("requestForm", "noParams");
         bluetooth.send("requestUI", "noParams");
         bluetooth.send("requestCheckouts", "time:"+new IO(bluetooth.getActivity()).loadCloudSettings().getLastBluetoothCheckoutSync());
         bluetooth.send("requestNumber", "noParams");
         bluetooth.send("requestEventName", "noParams");
-        bluetooth.send("DONE", "noParams");
     }
 
     @Override
@@ -229,6 +197,8 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
             try {
                 RForm form = mapper.readValue(message, RForm.class);
                 io.saveForm(form);
+
+                Log.d("RSBS", "Received form from Bluetooth");
             } catch(Exception e) {
                 Log.d("RSBS", "Failed to deserialized RForm from Bluetooth.");
             }
@@ -238,35 +208,49 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
                 RUI ui = mapper.readValue(message, RUI.class);
                 settings.setRui(ui);
                 io.saveSettings(settings);
+                Log.d("RSBS", "Received ui from Bluetooth");
             } catch(Exception e) {
                 Log.d("RSBS", "Failed to deserialized UI from Bluetooth.");
             }
         }
         else if(header.equals("CHECKOUTS")) {
             try {
-                JSONParser parser = new JSONParser();
-                JSONArray array = (JSONArray)parser.parse(message);
-                String[] received = new String[array.size()];
-                for(int i = 0; i < array.size(); i++) received[i] = array.get(i).toString();
-
+                TypeFactory typeFactory = mapper.getTypeFactory();
+                List<RCheckout> items = mapper.readValue(message, typeFactory.constructCollectionType(List.class, RCheckout.class));
                 SyncHelper syncHelper = new SyncHelper(bluetooth.getActivity(), SyncHelper.MODES.BLUETOOTH);
-                syncHelper.unpackCheckouts(syncHelper.convertStringSerialToCloudCheckouts(received), io.loadCloudSettings());
+                ArrayList<RCheckout> checks = new ArrayList<>();
+                checks.addAll(items);
+                syncHelper.unpackCheckouts(checks, io.loadCloudSettings());
                 pd.dismiss();
             } catch(Exception e) {
-                Log.d("RSBS", "Failed to process checkouts received over Bluetooth.");
+                e.printStackTrace();
+                Log.d("RSBS", "Failed to process checkouts received over Bluetooth: "+e.getMessage());
             }
         }
         else if(header.equals("NUMBER")) {
             RSyncSettings cloudSettings = io.loadCloudSettings();
             cloudSettings.setTeamNumber(Integer.parseInt(message));
             io.saveCloudSettings(cloudSettings);
+
+            Log.d("RSBS", "Received team number over Bluetooth: "+message);
         }
         else if(header.equals("EVENT_NAME")) {
             RSyncSettings cloudSettings = io.loadCloudSettings();
             cloudSettings.setEventName(message);
             io.saveCloudSettings(cloudSettings);
+
+            Log.d("RSBS", "Received event name over Bluetooth: "+message);
+
+            /*
+             * This is the last thing that is received from the server, so tell the server app to shut up
+             * with the "DONE" header.
+             */
+            bluetooth.send("DONE", "noParams");
         }
         else if(header.equals("ACTIVE")) {
+
+            Log.d("RSBS", "Active event status: "+message);
+
             if(!Boolean.parseBoolean(message)) {
                 // Stop the thread
                 interrupt();
@@ -274,14 +258,21 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
             }
         }
         else if(header.equals("DONE")) {
+            Log.d("RSBS", "Received done header from Roblu Master. Terminating connection.");
+
             // Delete all completed checkouts from MyCheckouts
             ArrayList<RCheckout> checkouts = io.loadMyCheckouts();
-            for(RCheckout checkout : checkouts) {
-                if(checkout.getStatus() == HandoffStatus.COMPLETED) {
-                    io.deleteMyCheckout(checkout.getID());
+
+            if(checkouts != null) {
+                for(RCheckout checkout : checkouts) {
+                    if(checkout.getStatus() == HandoffStatus.COMPLETED) {
+                        io.deleteMyCheckout(checkout.getID());
+                    }
                 }
+                Utils.requestUIRefresh(bluetooth.getActivity(), true, false);
             }
-            Utils.requestUIRefresh(bluetooth.getActivity(), true, false);
+
+            pd.dismiss();
         }
     }
 

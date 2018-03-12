@@ -18,7 +18,7 @@ public class SetupFragmentAdapter extends PagerAdapter {
 
     @Override
     public int getCount() {
-        return 5;
+        return 4;
     }
 
     @NonNull

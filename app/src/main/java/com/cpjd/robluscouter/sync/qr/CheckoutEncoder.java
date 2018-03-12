@@ -1,4 +1,4 @@
-package com.cpjd.robluscouter.utils;
+package com.cpjd.robluscouter.sync.qr;
 
 import android.util.Log;
 import com.cpjd.robluscouter.models.RCheckout;
@@ -191,8 +191,8 @@ public class CheckoutEncoder {
                             ((RChooser) metric).setSelectedIndex(Integer.parseInt(mTokens[4]));
                             String[] values = new String[mTokens.length - 6]; // the amount of values, with the header info removed
 
-                            for(int l = 5; l < mTokens.length; l++) {
-                                if(!mTokens[l].equals("")) values[l - 5] = mTokens[l];
+                            for(int l = 5; l < mTokens.length - 1; l++) {
+                                if(mTokens[l] != null && !mTokens[l].equals("")) values[l - 5] = mTokens[l];
                             }
                             ((RChooser) metric).setValues(values);
                             break;

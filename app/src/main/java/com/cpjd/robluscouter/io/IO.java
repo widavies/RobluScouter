@@ -94,11 +94,16 @@ public class IO {
      * Load a cloud settings object from internal storage
      * @return RSyncSettings object instance
      */
-    public synchronized RSyncSettings loadCloudSettings() {
+    public RSyncSettings loadCloudSettings() {
         RSyncSettings cloudSettings = (RSyncSettings) deserializeObject( PREFIX+File.separator+"cloudSettings.ser");
         if(cloudSettings == null) {
-            cloudSettings = new RSyncSettings();
-            saveCloudSettings(cloudSettings);
+            // Retry
+            cloudSettings = (RSyncSettings) deserializeObject( PREFIX+File.separator+"cloudSettings.ser");
+
+            if(cloudSettings == null) {
+                cloudSettings = new RSyncSettings();
+                saveCloudSettings(cloudSettings);
+            }
         }
         return cloudSettings;
     }

@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -86,7 +87,10 @@ public class Match extends Fragment implements RMetricToUI.ElementsListener {
         if(form != null) {
             ArrayList<RMetric> elements;
             if(position == 0 && TeamViewer.checkout.getTeam().getTabs().size() > 1) elements = form.getPit();
-            else elements = form.getMatch();
+            else {
+                elements = form.getMatch();
+                Log.d("RSBS", "Match form size: "+elements.size());
+            }
 
             for(RMetric s : elements) {
                 for (RMetric e : TeamViewer.checkout.getTeam().getTabs().get(position).getMetrics()) {
@@ -114,7 +118,7 @@ public class Match extends Fragment implements RMetricToUI.ElementsListener {
         else if(e instanceof RDivider) layout.addView(els.getDivider((RDivider)e));
         else if(e instanceof RFieldDiagram) layout.addView(els.getFieldDiagram(position, (RFieldDiagram)e));
         else if(e instanceof RCalculation) layout.addView(els.getCalculationMetric(TeamViewer.checkout.getTeam().getTabs().get(position).getMetrics(), ((RCalculation)e)));
-        else System.out.println("Couldn't resolve item!");
+        else Log.d("RSBS", "Could'nt resolve an item.");
     }
 
     @Override

@@ -21,6 +21,10 @@
             android:entryValues="@array/auto_checkouts"
             android:key="auto_checkouts"
             android:summary="Setup this device to automatically checkout certain assignments. This option is for teams using a strict six scouting device setup."/>
+        <CheckBoxPreference
+            android:title="Disable syncing"
+            android:key="disable_syncing"
+            android:summary="Disable cloud syncing to conserve mobile data"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="Bluetooth">
         <Preference

@@ -191,6 +191,7 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         observed.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(!editable) return;
                 layout.removeView(observed);
 
                 listener.changeMade(bool);
@@ -407,6 +408,8 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         observed.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                if(!editable) return;
                 layout.removeView(observed);
                 listener.changeMade(counter);
             }
@@ -466,6 +469,7 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         observed.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(!editable) return;
                 layout.removeView(observed);
 
                 listener.changeMade(slider);
@@ -551,6 +555,8 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         observed.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                if(!editable) return;
                 layout.removeView(observed);
                 listener.changeMade(chooser);
             }
@@ -635,6 +641,8 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         observed.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                if(!editable) return;
                 layout.removeView(observed);
                 listener.changeMade(checkbox);
             }
@@ -827,6 +835,8 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         observed.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                if(!editable) return;
                 layout.removeView(observed);
                 listener.changeMade(stopwatch);
             }

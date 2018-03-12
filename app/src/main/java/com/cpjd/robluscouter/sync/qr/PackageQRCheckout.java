@@ -17,7 +17,6 @@ import com.cpjd.robluscouter.models.RTab;
 import com.cpjd.robluscouter.models.metrics.RFieldDiagram;
 import com.cpjd.robluscouter.models.metrics.RGallery;
 import com.cpjd.robluscouter.models.metrics.RMetric;
-import com.cpjd.robluscouter.utils.CheckoutEncoder;
 import com.cpjd.robluscouter.utils.HandoffStatus;
 
 import java.util.LinkedHashMap;

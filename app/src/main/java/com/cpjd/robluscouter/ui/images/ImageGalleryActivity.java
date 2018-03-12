@@ -236,6 +236,18 @@ public class ImageGalleryActivity extends AppCompatActivity implements ImageGall
         else if(resultCode == Constants.IMAGE_EDITED) {
             TeamViewer.checkout.getTeam().setLastEdit(System.currentTimeMillis());
 
+            // save the ID to the gallery
+            for(int i = 0; i < TeamViewer.checkout.getTeam().getTabs().get(rTabIndex).getMetrics().size(); i++) {
+                if(TeamViewer.checkout.getTeam().getTabs().get(rTabIndex).getMetrics().get(i).getID() == galleryID) {
+                    if(((RGallery)TeamViewer.checkout.getTeam().getTabs().get(rTabIndex).getMetrics().get(i)).getPictureIDs() == null) {
+                        ((RGallery)TeamViewer.checkout.getTeam().getTabs().get(rTabIndex).getMetrics().get(i)).setPictureIDs(new ArrayList<Integer>());
+                    }
+                    ((RGallery)TeamViewer.checkout.getTeam().getTabs().get(rTabIndex).getMetrics().get(i)).getPictureIDs().add(
+                            new IO(getApplicationContext()).savePicture(IMAGES.get(data.getIntExtra("position", 0))));
+                    break;
+                }
+            }
+
             new IO(getApplicationContext()).saveMyCheckout(TeamViewer.checkout);
             imageGalleryAdapter.notifyDataSetChanged();
         }

@@ -1,7 +1,5 @@
 package com.cpjd.robluscouter.ui.checkouts;
 
-import android.util.Log;
-
 import com.cpjd.robluscouter.io.IO;
 import com.cpjd.robluscouter.models.RCheckout;
 import com.cpjd.robluscouter.models.RSettings;
@@ -51,7 +49,6 @@ public class LoadCheckouts extends Thread {
 
         // If they're equal to null, return early
         if(checkouts == null || checkouts.size() == 0) {
-            Log.d("RSBS", "Unable to load checkouts.");
             quit();
             listener.checkoutsLoaded(null, false);
             return;

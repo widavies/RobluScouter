@@ -71,6 +71,10 @@ public class RSettings implements Serializable {
     private int autoAssignmentMode;
 
     /**
+     * Allows the user to explicitly disable the background service.
+     */
+    private boolean syncDisabled;
+    /**
      * Sets the defaults for settings
      */
     public RSettings() {

@@ -10,6 +10,7 @@ import com.cpjd.robluscouter.models.RSettings;
 import com.cpjd.robluscouter.models.RSyncSettings;
 import com.cpjd.robluscouter.models.RTab;
 import com.cpjd.robluscouter.models.metrics.RGallery;
+import com.cpjd.robluscouter.models.metrics.RMetric;
 import com.cpjd.robluscouter.notifications.Notify;
 import com.cpjd.robluscouter.sync.cloud.AutoCheckoutTask;
 import com.cpjd.robluscouter.utils.HandoffStatus;
@@ -65,6 +66,8 @@ public class SyncHelper {
 
             // Go through and make sure to add edit history tags to all the RTabs
             for(RCheckout checkout : checkouts) {
+                if(mode == MODES.BLUETOOTH && checkout.getStatus() != HandoffStatus.COMPLETED) continue;
+
                 if(checkout.getStatus() == HandoffStatus.COMPLETED && checkout.getTeam().getLastEdit() > 0) {
                     for(RTab t : checkout.getTeam().getTabs()) {
                         LinkedHashMap<String, Long> edits = t.getEdits();
@@ -91,6 +94,36 @@ public class SyncHelper {
 
 
         return mapper.writeValueAsString(checkouts);
+    }
+
+    public void unpackCheckouts(ArrayList<RCheckout> checkouts, RSyncSettings cloudSettings) {
+        if(checkouts == null || checkouts.size() == 0) {
+            throw new NullPointerException("No checkouts to unpack.");
+        }
+
+        ArrayList<RCheckout> refList = new ArrayList<>();
+
+        for(RCheckout checkout : checkouts) {
+            try {
+                refList.add(checkout);
+
+                // Merge the checkout
+                mergeCheckout(checkout);
+
+            } catch(Exception e) {
+                Log.d("RBS", "Failed to unpack checkout");
+            }
+        }
+
+        new AutoCheckoutTask(null, io, settings, refList, false).start();
+
+        if(mode == MODES.BLUETOOTH) {
+            cloudSettings.setLastBluetoothCheckoutSync(System.currentTimeMillis());
+
+            Notify.notifyNoAction(context, "Successfully pulled "+checkouts.size()+" checkouts.", "Roblu Scouter successfully pulled "+checkouts.size()+" checkouts from" +
+                    " a Bluetooth server at "+Utils.convertTime(System.currentTimeMillis()));
+            Utils.requestUIRefresh(context, true, true);
+        }
     }
 
     /**
@@ -127,7 +160,7 @@ public class SyncHelper {
             }
         }
 
-        new AutoCheckoutTask(null, io, settings, refList).start();
+        new AutoCheckoutTask(null, io, settings, refList, false).start();
 
         // Send a multi-notification instead of spamming the user if they received 6 or more checkouts at once
         if(mode == MODES.NETWORK) {
@@ -151,6 +184,23 @@ public class SyncHelper {
      * @param checkout the checkout to merge
      */
     private void mergeCheckout(RCheckout checkout) {
+        /*
+         * Unpack images
+         */
+        for(RTab tab : checkout.getTeam().getTabs()) {
+            for(RMetric metric : tab.getMetrics()) {
+                if(metric instanceof RGallery) {
+                    if(((RGallery) metric).getImages() != null) {
+                        ((RGallery) metric).setPictureIDs(new ArrayList<Integer>());
+                        // Add images to the current gallery
+                        for(int i = 0; i < ((RGallery) metric).getImages().size(); i++) {
+                            ((RGallery) metric).getPictureIDs().add(io.savePicture(((RGallery) metric).getImages().get(i)));
+                        }
+                    }
+                }
+            }
+        }
+
         io.saveCheckout(checkout);
 
         Log.d("RBS-Service", "Merged the team: "+checkout.getTeam().getName());

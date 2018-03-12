@@ -127,6 +127,10 @@ public class AdvSettings extends AppCompatActivity{
             preference.setOnPreferenceChangeListener(this);
             preference.getEditText().setHint("Team code");
 
+            android.preference.CheckBoxPreference disableSyncing = (android.preference.CheckBoxPreference) findPreference("disable_syncing");
+            disableSyncing.setOnPreferenceChangeListener(this);
+            disableSyncing.setChecked(settings.isSyncDisabled());
+
             rui = settings.getRui();
         }
 
@@ -209,12 +213,16 @@ public class AdvSettings extends AppCompatActivity{
                }
                settings.setCode(o.toString());
            }
+           // disable syncing option
+           else if(preference.getKey().equalsIgnoreCase("disable_syncing")) {
+               settings.setSyncDisabled((Boolean)o);
+           }
            // user selected auto checkouts option
            else if(preference.getKey().equalsIgnoreCase("auto_checkouts")) {
                settings.setAutoAssignmentMode(((ListPreference)preference).findIndexOfValue(o.toString()));
                pd = ProgressDialog.show(getActivity(), "Checking out checkouts...", "Please wait...");
                pd.setCancelable(false);
-               new AutoCheckoutTask(this, new IO(getActivity()), settings, null).start();
+               new AutoCheckoutTask(this, new IO(getActivity()), settings, null, true).start();
            }
            else if(preference.getKey().equalsIgnoreCase("server_ip")) {
                if(o.toString() == null || o.toString().equals("") || o.toString().replaceAll(" ", "").equals("")) {
