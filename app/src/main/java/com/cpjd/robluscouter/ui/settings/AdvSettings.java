@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -12,8 +13,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.cpjd.http.Request;
+import com.cpjd.models.CloudTeam;
 import com.cpjd.requests.CloudTeamRequest;
 import com.cpjd.robluscouter.R;
 import com.cpjd.robluscouter.io.IO;
@@ -109,6 +112,8 @@ public class AdvSettings extends AppCompatActivity{
             findPreference("privacy").setOnPreferenceClickListener(this);
             findPreference("server_ip").setOnPreferenceChangeListener(this);
             findPreference("bt_devices").setOnPreferenceClickListener(this);
+            findPreference("reset").setOnPreferenceClickListener(this);
+            findPreference("website").setOnPreferenceClickListener(this);
             p = findPreference("sync_list");
             StringBuilder devices = new StringBuilder();
             if(settings.getBluetoothServerMACs() != null) {
@@ -175,11 +180,42 @@ public class AdvSettings extends AppCompatActivity{
                 return true;
             }
             else if(preference.getKey().equals("privacy")) {
-                String url = "https://www.cpjd.weebly.com/privacy";
+                String url = "https://www.roblu.net/privacy";
                 Intent i = new Intent(Intent.ACTION_VIEW);
                 i.setData(Uri.parse(url));
                 startActivity(i);
                 return true;
+            }
+            else if(preference.getKey().equals("website")) {
+                String url = "https://www.roblu.net";
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
+                return true;
+            }
+            else if(preference.getKey().equals("reset")) {
+                new FastDialogBuilder()
+                        .setTitle("WARNING")
+                        .setMessage("This will delete ALL scouting data in this app. Are you sure?")
+                        .setPositiveButtonText("Delete")
+                        .setNegativeButtonText("Cancel")
+                        .setFastDialogListener(new FastDialogBuilder.FastDialogListener() {
+                            @Override
+                            public void accepted() {
+                                IO io = new IO(getActivity());
+                                io.clearCheckouts();
+                            }
+
+                            @Override
+                            public void denied() {
+
+                            }
+
+                            @Override
+                            public void neutral() {
+
+                            }
+                        }).build(getActivity());
             }
             return false;
         }
@@ -200,17 +236,20 @@ public class AdvSettings extends AppCompatActivity{
         @Override
         public boolean onPreferenceChange(final Preference preference, Object o) {
            if(preference.getKey().equals("team")) {
-                if(!Utils.hasInternetConnection(getActivity())) {
+               StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitNetwork().build();
+               StrictMode.setThreadPolicy(policy);
+
+               if(!Utils.hasInternetConnection(getActivity())) {
                     Utils.showSnackbar(getActivity().findViewById(R.id.advsettings), getActivity(), "You are not connected to the internet.", true, 0);
                     return false;
                 }
                Request r = new Request(settings.getServerIP());
-               if(r.ping() && new CloudTeamRequest(r, o.toString()).getTeam(-1) != null) {
+               CloudTeam cloudTeam = new CloudTeamRequest(r, o.toString()).getTeam(-1);
+               if(r.ping() && cloudTeam != null) {
                    Log.d("RSBS", "Successfully joined team!");
-                   Utils.showSnackbar(getActivity().findViewById(R.id.advsettings), getActivity(), "Successfully joined team.", false, settings.getRui().getPrimaryColor());
-               } else if(r.ping() && new CloudTeamRequest(r, o.toString()).getTeam(-1) == null){
-                   Utils.showSnackbar(getActivity().findViewById(R.id.advsettings), getActivity(), "Team code not found on server.", true, settings.getRui().getPrimaryColor());
+                   Toast.makeText(getActivity(), "Successfully joined team.", Toast.LENGTH_LONG).show();
                }
+
                settings.setCode(o.toString());
            }
            // disable syncing option

@@ -42,8 +42,18 @@
             android:key="about"
             android:summary="External library information"/>
         <Preference
+            android:title="Website"
+            android:key="website"
+            android:summary="Info, support, and more."/>
+        <Preference
             android:title="Privacy and terms"
             android:key="privacy"
             android:summary="View troubleshooting, console commands, how Roblu handles your data, and the terms of use."/>
     </PreferenceCategory>
+    <PreferenceCategory android:title="Other">
+        <Preference
+            android:title="Reset app"
+            android:key="reset"
+            android:summary="If you're having problems with syncing, use this to reset the app. This will delete ALL scouting data."/>
+        </PreferenceCategory>
 </PreferenceScreen>

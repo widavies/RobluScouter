@@ -13,7 +13,6 @@ import com.cpjd.robluscouter.models.RSyncSettings;
 import com.cpjd.robluscouter.models.RUI;
 import com.cpjd.robluscouter.notifications.Notify;
 import com.cpjd.robluscouter.sync.SyncHelper;
-import com.cpjd.robluscouter.utils.HandoffStatus;
 import com.cpjd.robluscouter.utils.Utils;
 
 import org.codehaus.jackson.map.DeserializationConfig;
@@ -165,20 +164,20 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
         // Send completed
         IO io = new IO(bluetooth.getActivity());
         ArrayList<RCheckout> checkouts = io.loadPendingCheckouts();
-        ArrayList<RCheckout> toUpload = new ArrayList<>();
         if(checkouts != null) {
             try {
-                bluetooth.send("SCOUTING_DATA", new SyncHelper(bluetooth.getActivity(), SyncHelper.MODES.BLUETOOTH).packCheckouts(toUpload));
+                bluetooth.send("SCOUTING_DATA", new SyncHelper(bluetooth.getActivity(), SyncHelper.MODES.BLUETOOTH).packCheckouts(checkouts));
                 /*
                  * Delete the checkouts from "MyCheckouts"
                  */
-                for(RCheckout ch : toUpload) {
+                for(RCheckout ch : checkouts) {
+                    io.saveCheckout(ch);
                     io.deleteMyCheckout(ch.getID());
                 }
 
                 Notify.notifyNoAction(bluetooth.getActivity(), "Sent checkouts successfully", "Successfully sent "+checkouts.size()+" checkouts to target device over Bluetooth.");
             } catch(Exception e) {
-                Log.d("RSBS", "Failed to send completed checkouts.");
+                Log.d("RSBS", "Failed to send completed checkouts. "+e.getMessage());
             }
         } else bluetooth.send("SCOUTING_DATA", "noParams");
 
@@ -260,17 +259,7 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
         else if(header.equals("DONE")) {
             Log.d("RSBS", "Received done header from Roblu Master. Terminating connection.");
 
-            // Delete all completed checkouts from MyCheckouts
-            ArrayList<RCheckout> checkouts = io.loadMyCheckouts();
-
-            if(checkouts != null) {
-                for(RCheckout checkout : checkouts) {
-                    if(checkout.getStatus() == HandoffStatus.COMPLETED) {
-                        io.deleteMyCheckout(checkout.getID());
-                    }
-                }
-                Utils.requestUIRefresh(bluetooth.getActivity(), true, false);
-            }
+            Utils.requestUIRefresh(bluetooth.getActivity(), true, false);
 
             pd.dismiss();
         }

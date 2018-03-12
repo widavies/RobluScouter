@@ -115,7 +115,9 @@ public class SyncHelper {
             }
         }
 
-        new AutoCheckoutTask(null, io, settings, refList, false).start();
+        if(mode != MODES.BLUETOOTH) {
+            new AutoCheckoutTask(null, io, settings, refList, false).start();
+        }
 
         if(mode == MODES.BLUETOOTH) {
             cloudSettings.setLastBluetoothCheckoutSync(System.currentTimeMillis());

@@ -309,8 +309,12 @@ public class IO {
             }
         }
 
-        delete(new File(PREFIX + File.separator+"settings.ser"));
-        delete(new File(PREFIX + File.separator+"cloudSettings.ser"));
+        RSyncSettings syncSettings = loadCloudSettings();
+        syncSettings.setLastBluetoothCheckoutSync(0);
+        syncSettings.getCheckoutSyncIDs().clear();
+        syncSettings.setEventName("");
+        syncSettings.setTeamSyncID(0);
+        saveCloudSettings(syncSettings);
 
     }
 
