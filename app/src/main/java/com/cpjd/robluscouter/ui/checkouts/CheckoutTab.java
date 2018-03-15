@@ -109,7 +109,13 @@ public class CheckoutTab extends Fragment implements CheckoutClickListener, Load
     @Override
     public void checkoutClicked(View v) {
         // Disable editing while upload pending
-        if(adapter.getCheckouts().get(recyclerView.getChildAdapterPosition(v)).getStatus() == HandoffStatus.COMPLETED && mode == Constants.MY_CHECKOUTS) return;
+        if(adapter.getCheckouts().get(recyclerView.getChildAdapterPosition(v)).getStatus() == HandoffStatus.COMPLETED && mode == Constants.MY_CHECKOUTS) {
+            Intent intent = new Intent(getActivity(), TeamViewer.class);
+            intent.putExtra("checkout", adapter.getCheckouts().get(recyclerView.getChildAdapterPosition(v)).getID());
+            intent.putExtra("editable", false);
+            startActivityForResult(intent, Constants.GENERAL);
+            return;
+        }
 
         Intent intent = new Intent(getActivity(), TeamViewer.class);
         intent.putExtra("checkout", adapter.getCheckouts().get(recyclerView.getChildAdapterPosition(v)).getID());
