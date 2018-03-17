@@ -13,6 +13,7 @@ import com.cpjd.robluscouter.models.RSyncSettings;
 import com.cpjd.robluscouter.models.RUI;
 import com.cpjd.robluscouter.notifications.Notify;
 import com.cpjd.robluscouter.sync.SyncHelper;
+import com.cpjd.robluscouter.utils.HandoffStatus;
 import com.cpjd.robluscouter.utils.Utils;
 
 import org.codehaus.jackson.map.DeserializationConfig;
@@ -172,7 +173,8 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
                  */
                 for(RCheckout ch : checkouts) {
                     io.saveCheckout(ch);
-                    io.deleteMyCheckout(ch.getID());
+
+                    if(ch.getStatus() == HandoffStatus.COMPLETED) io.deleteMyCheckout(ch.getID());
                 }
 
                 Notify.notifyNoAction(bluetooth.getActivity(), "Sent checkouts successfully", "Successfully sent "+checkouts.size()+" checkouts to target device over Bluetooth.");
