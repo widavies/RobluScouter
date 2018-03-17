@@ -11,6 +11,7 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -155,8 +156,11 @@ public class Utils {
                 (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        return activeNetwork != null &&
-                activeNetwork.isConnectedOrConnecting();
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            return activeNetwork != null &&
+                    activeNetwork.isConnectedOrConnecting() || (cm.getNetworkInfo(ConnectivityManager.TYPE_VPN).isConnectedOrConnecting());
+        } else return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 
     /**
