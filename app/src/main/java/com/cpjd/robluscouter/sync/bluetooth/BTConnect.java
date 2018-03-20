@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.cpjd.robluscouter.io.IO;
 import com.cpjd.robluscouter.models.RCheckout;
@@ -213,6 +214,8 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
             }
         }
         else if(header.equals("CHECKOUTS")) {
+            Log.d("RBS", "Received checkouts list from Roblu Master");
+
             try {
                 TypeFactory typeFactory = mapper.getTypeFactory();
                 List<RCheckout> items = mapper.readValue(message, typeFactory.constructCollectionType(List.class, RCheckout.class));
@@ -220,7 +223,6 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
                 ArrayList<RCheckout> checks = new ArrayList<>();
                 checks.addAll(items);
                 syncHelper.unpackCheckouts(checks, io.loadCloudSettings());
-                pd.dismiss();
             } catch(Exception e) {
                 e.printStackTrace();
                 Log.d("RSBS", "Failed to process checkouts received over Bluetooth: "+e.getMessage());
@@ -256,8 +258,15 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
     }
 
     @Override
-    public void deviceConnected(BluetoothDevice device) {
+    public void deviceConnected(final BluetoothDevice device) {
         Log.d("RSBS", "Connected to "+device.getName());
+
+        bluetooth.getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(bluetooth.getActivity(), "Connected to device: "+device.getName()+".", Toast.LENGTH_LONG).show();
+            }
+        });
 
         transfer();
     }
