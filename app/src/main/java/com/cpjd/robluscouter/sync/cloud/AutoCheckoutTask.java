@@ -66,8 +66,37 @@ public class AutoCheckoutTask extends Thread {
         IO io = ioWeakReference.get();
 
         if(settings.getAutoAssignmentMode() <= 0) {
+
+            for(RCheckout checkout : checkouts) {
+            /*
+             * First, check to see if it should be UNCHECKED out
+             */
+                if(uncheckout && checkout.getStatus() == HandoffStatus.CHECKED_OUT && checkout.getTeam().getTabs().get(0).getAlliancePosition() != settings.getAutoAssignmentMode() &&
+                        checkout.getNameTag().equals(settings.getName())) {
+
+                    boolean shouldCheckout = true;
+
+                    // Test to see if the metric has got some data in it, if it does, don't uncheck it out
+                    loop:
+                    for(RTab tab : checkout.getTeam().getTabs()) {
+                        for(RMetric metric : tab.getMetrics()) {
+                            if(!(metric instanceof RCalculation) && !(metric instanceof RFieldData) && metric.isModified()) {
+                                shouldCheckout = false;
+                                break loop;
+                            }
+                        }
+                    }
+
+                    if(shouldCheckout) {
+                        checkout.setStatus(HandoffStatus.AVAILABLE);
+                        io.deleteMyCheckout(checkout.getID());
+                        io.saveCheckout(checkout);
+                        io.savePendingCheckout(checkout); // For the status
+                    }
+
+                }
+            }
             Log.d("RSBS", "AutoCheckoutMode is 0, stopping AutoCheckoutTask...");
-            quit();
             return;
         }
 

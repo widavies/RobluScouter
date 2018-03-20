@@ -118,6 +118,22 @@ public class Service extends android.app.Service {
                 io.saveForm(form);
                 settings.setRui(mapper.readValue(cloudTeam.getUi(), RUI.class));
                 io.saveSettings(settings);
+
+                /*
+                 * This helps prevent some errors, if a new event name is received, go ahead and clear out the checkouts
+                 */
+                if(cloudTeam.getActiveEventName() != null && cloudSettings.getEventName() != null && !cloudTeam.getActiveEventName().equals("")
+                        && !cloudSettings.getEventName().equals("") && (cloudTeam.getActiveEventName().toLowerCase().trim().equalsIgnoreCase(
+                                cloudSettings.getEventName().toLowerCase().trim()))) {
+                    Log.d("Service-RSBS", "No active event found. Terminating loop early.");
+                    io.clearCheckouts();
+                    cloudSettings.setEventName("");
+                    cloudSettings.setTeamSyncID(0);
+                    cloudSettings.getCheckoutSyncIDs().clear();
+                    io.saveCloudSettings(cloudSettings);
+                    Utils.requestUIRefresh(getApplicationContext(), true, true);
+                }
+
                 cloudSettings.setEventName(cloudTeam.getActiveEventName());
                 cloudSettings.setTeamNumber((int)cloudTeam.getNumber());
                 cloudSettings.setTeamSyncID(cloudTeam.getSyncID());

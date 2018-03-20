@@ -160,8 +160,6 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
      * @see com.cpjd.robluscouter.sync.cloud.Service
      */
     private void transfer() {
-        bluetooth.send("isActive", "noParams");
-
         // Send completed
         IO io = new IO(bluetooth.getActivity());
         ArrayList<RCheckout> checkouts = io.loadPendingCheckouts();
@@ -247,16 +245,6 @@ public class BTConnect extends Thread implements Bluetooth.BluetoothListener {
              * with the "DONE" header.
              */
             bluetooth.send("DONE", "noParams");
-        }
-        else if(header.equals("ACTIVE")) {
-
-            Log.d("RSBS", "Active event status: "+message);
-
-            if(!Boolean.parseBoolean(message)) {
-                // Stop the thread
-                interrupt();
-                pd.dismiss();
-            }
         }
         else if(header.equals("DONE")) {
             Log.d("RSBS", "Received done header from Roblu Master. Terminating connection.");
