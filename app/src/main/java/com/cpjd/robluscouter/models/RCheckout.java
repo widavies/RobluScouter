@@ -94,6 +94,10 @@ public class RCheckout implements Serializable, Comparable<RCheckout> {
 
     @Override
     public int compareTo(@NonNull RCheckout handoff) {
+        // These lines prevent some odd sorting error from occurring
+        if(getTeam().getTabs().get(0).getMatchType() == null) getTeam().getTabs().get(0).computeSortingCache(getTeam().getNumber());
+        else if(handoff.getTeam().getTabs().get(0).getMatchType() == null) handoff.getTeam().getTabs().get(0).computeSortingCache(handoff.getTeam().getNumber());
+
         return getTeam().getTabs().get(0).compareTo(handoff.getTeam().getTabs().get(0));
     }
 

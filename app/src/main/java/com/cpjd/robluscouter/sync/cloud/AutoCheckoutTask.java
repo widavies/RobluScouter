@@ -65,8 +65,7 @@ public class AutoCheckoutTask extends Thread {
         }
         IO io = ioWeakReference.get();
 
-        if(settings.getAutoAssignmentMode() <= 0) {
-
+        if(settings.getAutoAssignmentMode() <= 0 && checkouts != null) {
             for(RCheckout checkout : checkouts) {
             /*
              * First, check to see if it should be UNCHECKED out

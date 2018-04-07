@@ -102,10 +102,13 @@ public class RTab implements Serializable, Comparable<RTab> {
         this.time = time;
         this.alliancePosition = -1; // default to not found
 
+        computeSortingCache(teamNumber);
+    }
+
+    public void computeSortingCache(int teamNumber) {
         // Process MatchType
         String matchName = "team# "+teamNumber+" "+title.toLowerCase().trim();
         String[] tokens = matchName.split("\\s+");
-
         matchType = MatchType.getByName(tokens[2]);
         if(matchType.hasMatchOrder()) matchOrder = Integer.parseInt(tokens[3]);
         if(matchType.hasSubmatches()) subMatchOrder = Integer.parseInt(tokens[5]);
@@ -121,8 +124,7 @@ public class RTab implements Serializable, Comparable<RTab> {
 
             if(this.matchOrder == tab.getMatchOrder()) return ((this.subMatchOrder) - (tab.getSubMatchOrder()));
             else return ((this.matchOrder) - (tab.getMatchOrder()));
-        }
-        else return ((this.matchType.getMatchTypeOrder()) - (tab.getMatchType().getMatchTypeOrder()));
+        } else return ((this.matchType.getMatchTypeOrder()) - (tab.getMatchType().getMatchTypeOrder()));
     }
 
     @Override
