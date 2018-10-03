@@ -87,7 +87,7 @@ public class Service extends android.app.Service {
         SyncHelper syncHelper = new SyncHelper(getApplicationContext(), SyncHelper.MODES.NETWORK);
 
         if(settings.isSyncDisabled()) {
-            Log.d("Service-RBS", "Syncing is disableds. Terminating loop.");
+            Log.d("Service-RBS", "Syncing is disabled. Terminating loop.");
             return;
         }
 

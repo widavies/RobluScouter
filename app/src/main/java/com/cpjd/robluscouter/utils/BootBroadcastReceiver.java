@@ -3,6 +3,7 @@ package com.cpjd.robluscouter.utils;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
 import com.cpjd.robluscouter.sync.cloud.Service;
@@ -26,9 +27,14 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
         // BOOT_COMPLETED” start Service
         if (intent.getAction().equals(ACTION)) {
             //Service
-            System.out.println("Starting from bootup...");
-            Intent serviceIntent = new Intent(context, Service.class);
-            context.startService(serviceIntent);
+            Log.d("RSBS", "Auto-starting RobluScouter service.");
+            try {
+                Intent serviceIntent = new Intent(context, Service.class);
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) context.startForegroundService(serviceIntent);
+                else context.startService(serviceIntent);
+            } catch(Exception e) {
+                Log.d("RSBS", "Failed to auto-start RobluScouter service.");
+            }
         }
     }
 }

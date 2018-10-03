@@ -143,7 +143,10 @@ public class CheckoutsView extends AppCompatActivity {
             settings = new IO(getApplicationContext()).loadSettings();
 
             RSyncSettings cloudSettings = new IO(getApplicationContext()).loadCloudSettings();
-            if(cloudSettings != null && getSupportActionBar() != null) getSupportActionBar().setSubtitle(cloudSettings.getEventName());
+            if(getSupportActionBar() != null) {
+                if(cloudSettings != null) getSupportActionBar().setSubtitle(cloudSettings.getEventName());
+                else getSupportActionBar().setSubtitle("");
+            }
         }
     };
 

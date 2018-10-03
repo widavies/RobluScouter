@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.2'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.2'
     defaultConfig {
         applicationId "com.cpjd.robluscouter"
         minSdkVersion 19
-        targetSdkVersion 27
-        versionCode 30
-        versionName "4.4.7"
+        targetSdkVersion 28
+        versionCode 31
+        versionName "4.4.8"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
@@ -38,27 +38,27 @@ allprojects {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile files('libs/jackson-all-1.9.0.jar')
-    compile files('libs/android-integration-3.3.0.jar')
-    compile "com.googlecode.json-simple:json-simple:1.1"
-    compile 'com.android.support:appcompat-v7:27.0.2'
-    compile 'com.android.support:recyclerview-v7:27.0.2'
-    compile 'com.android.support:preference-v7:27.0.2'
-    compile 'com.jrummyapps:colorpicker:2.1.6'
-    compile 'com.github.infotech-group:CanvasView:release'
-    compile 'com.android.support:cardview-v7:27.0.2'
-    compile 'com.android.support:design:27.0.2'
-    compile 'pub.devrel:easypermissions:0.2.1'
-    compile 'com.squareup.picasso:picasso:2.5.2'
-    compile('com.mikepenz:aboutlibraries:5.9.5@aar') { transitive = true }
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation files('libs/jackson-all-1.9.0.jar')
+    implementation files('libs/android-integration-3.3.0.jar')
+    implementation "com.googlecode.json-simple:json-simple:1.1"
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support:recyclerview-v7:28.0.0'
+    implementation 'com.android.support:preference-v7:28.0.0'
+    implementation 'com.jrummyapps:colorpicker:2.1.6'
+    implementation 'com.github.infotech-group:CanvasView:release'
+    implementation 'com.android.support:cardview-v7:28.0.0'
+    implementation 'com.android.support:design:28.0.0'
+    implementation 'pub.devrel:easypermissions:0.2.1'
+    implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation('com.mikepenz:aboutlibraries:5.9.5@aar') { transitive = true }
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:27.0.2'
-    compile "org.projectlombok:lombok:1.16.16"
-    annotationProcessor 'org.projectlombok:lombok:1.16.16'
-    compile 'javax.annotation:jsr250-api:1.0'
-    testCompile 'junit:junit:4.12'
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation "org.projectlombok:lombok:1.18.0"
+    annotationProcessor 'org.projectlombok:lombok:1.18.0'
+    implementation 'javax.annotation:jsr250-api:1.0'
+    testImplementation 'junit:junit:4.12'
 }
 
