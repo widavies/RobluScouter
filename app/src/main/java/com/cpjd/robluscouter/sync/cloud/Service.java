@@ -1,15 +1,14 @@
 package com.cpjd.robluscouter.sync.cloud;
 
 import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.StrictMode;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.cpjd.http.Request;
@@ -17,6 +16,7 @@ import com.cpjd.models.CloudCheckout;
 import com.cpjd.models.CloudTeam;
 import com.cpjd.requests.CloudCheckoutRequest;
 import com.cpjd.requests.CloudTeamRequest;
+import com.cpjd.robluscouter.R;
 import com.cpjd.robluscouter.io.IO;
 import com.cpjd.robluscouter.models.RCheckout;
 import com.cpjd.robluscouter.models.RForm;
@@ -25,6 +25,7 @@ import com.cpjd.robluscouter.models.RSyncSettings;
 import com.cpjd.robluscouter.models.RUI;
 import com.cpjd.robluscouter.notifications.Notify;
 import com.cpjd.robluscouter.sync.SyncHelper;
+import com.cpjd.robluscouter.ui.checkouts.CheckoutsView;
 import com.cpjd.robluscouter.utils.HandoffStatus;
 import com.cpjd.robluscouter.utils.Utils;
 
@@ -72,23 +73,30 @@ public class Service extends android.app.Service {
 
         try {
             if(Build.VERSION.SDK_INT >= 26) {
-                String CHANNEL_ID = "my_channel_01";
-                NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
-                        "Roblu Scouter Service",
-                        NotificationManager.IMPORTANCE_DEFAULT);
-
-                ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
-
-                Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                        .setContentTitle("")
-                        .setContentText("").build();
-
-                startForeground(1, notification);
+                startForeground(1, getMyActivityNotification("", ""));
             }
         } catch(Exception e) {
             Log.d("RSBS", "Failed to start foreground service.");
         }
+    }
+    private void updateNotification() {
+        Notification notification = getMyActivityNotification("RobluScouter background service is active.", "This notification is required for the background service to work in newer versions " +
+                "of Android. You should be able to hide this notificatio via your phone's notification settings for this app.");
 
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(1, notification);
+    }
+    private Notification getMyActivityNotification(String title, String text){
+        // The PendingIntent to launch our activity if the user selects
+        // this notification
+        PendingIntent contentIntent = PendingIntent.getActivity(this,
+                0, new Intent(this, CheckoutsView.class), 0);
+
+        return new Notification.Builder(this)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setSmallIcon(R.drawable.launcher)
+                .setContentIntent(contentIntent).getNotification();
     }
 
     /**
@@ -98,6 +106,8 @@ public class Service extends android.app.Service {
     public void loop() {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitNetwork().build();
         StrictMode.setThreadPolicy(policy);
+
+        updateNotification();
 
         if(!Utils.hasInternetConnection(getApplicationContext())) {
             Log.d("Service-RSBS", "No internet connection detected. Ending loop() early.");

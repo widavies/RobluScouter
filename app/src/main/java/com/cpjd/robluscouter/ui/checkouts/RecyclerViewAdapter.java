@@ -1,6 +1,7 @@
 package com.cpjd.robluscouter.ui.checkouts;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -184,6 +185,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 if(mode == Constants.MY_CHECKOUTS && handoff.getStatus() == HandoffStatus.COMPLETED) {
                     RSettings settings = new IO(context).loadSettings();
                     subtitleText+="\nUpload pending";
+                    itemView.setBackgroundColor(Color.rgb(1, 50, 32));
                 }
                 subtitle.setText(subtitleText);
                 subtitle.setTextSize(15f);

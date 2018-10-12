@@ -76,6 +76,7 @@ public class RecyclerViewTouchHelper extends ItemTouchHelper.SimpleCallback {
             io.saveMyCheckout(checkout);
             io.saveCheckout(checkout);
             io.savePendingCheckout(checkout);
+
             // If the user doesn't want to see currently checked out items, remove this from the list
             if(mode == Constants.CHECKOUTS) {
                 if(!settings.isShowCheckedOut()) checkoutsAdapter.remove(viewHolder.getAdapterPosition());

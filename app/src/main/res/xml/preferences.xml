@@ -38,6 +38,10 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="About">
         <Preference
+            android:title="Tutorial"
+            android:key="tutorial"
+            android:summary="Access the tutorial guide for Roblu Scouter"/>
+        <Preference
             android:title="About"
             android:key="about"
             android:summary="External library information"/>

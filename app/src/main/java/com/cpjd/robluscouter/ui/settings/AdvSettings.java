@@ -114,6 +114,7 @@ public class AdvSettings extends AppCompatActivity{
             findPreference("bt_devices").setOnPreferenceClickListener(this);
             findPreference("reset").setOnPreferenceClickListener(this);
             findPreference("website").setOnPreferenceClickListener(this);
+            findPreference("tutorial").setOnPreferenceClickListener(this);
             p = findPreference("sync_list");
             StringBuilder devices = new StringBuilder();
             if(settings.getBluetoothServerMACs() != null) {
@@ -177,6 +178,13 @@ public class AdvSettings extends AppCompatActivity{
             else if(preference.getKey().equals("bt_devices")) {
                 Intent i = new Intent(getActivity(), BTDeviceSelector.class);
                 startActivityForResult(i, Constants.GENERAL);
+                return true;
+            }
+            else if(preference.getKey().equals("tutorial")) {
+                String url = "https://docs.google.com/document/d/191km1s6HqZF8Ag6bCwn_XWA54MepjL5gU8-N05ean3w/edit?usp=sharing";
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
                 return true;
             }
             else if(preference.getKey().equals("privacy")) {
