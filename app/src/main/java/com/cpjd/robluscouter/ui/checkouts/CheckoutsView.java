@@ -187,6 +187,10 @@ public class CheckoutsView extends AppCompatActivity {
             case R.id.settings:
                 startActivityForResult(new Intent(this, AdvSettings.class), Constants.GENERAL);
                 break;
+            case R.id.refresh:
+                tabAdapter.getCheckouts().forceUpdate();
+                tabAdapter.getMyCheckouts().forceUpdate();
+                break;
         }
         invalidateOptionsMenu();
         new IO(getApplicationContext()).saveSettings(settings);

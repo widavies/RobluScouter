@@ -139,7 +139,7 @@ public class Bluetooth {
      * Force disables Bluetooth on the device
      */
     public void disable() {
-        bluetoothAdapter.disable();
+        if(bluetoothAdapter != null) bluetoothAdapter.disable();
     }
 
     /**
@@ -205,6 +205,8 @@ public class Bluetooth {
      * the if(listener != null) listener will be updated when new devices are found
      */
     public void startScanning() {
+        if(bluetoothAdapter == null) return;
+
         if(bluetoothAdapter.isDiscovering()) {
             bluetoothAdapter.cancelDiscovery();
         }
@@ -215,7 +217,7 @@ public class Bluetooth {
      * Stops searching for other devices
      */
     public void stopScanning() {
-        bluetoothAdapter.cancelDiscovery();
+        if(bluetoothAdapter != null) bluetoothAdapter.cancelDiscovery();
     }
 
     /**

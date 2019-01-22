@@ -12,6 +12,7 @@ import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -711,7 +712,19 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
         imageView.setAdjustViewBounds(true);
 
         // Get field diagram
-        final Bitmap field = BitmapFactory.decodeResource(activity.getResources(), R.drawable.field2018);
+        final Bitmap field;
+
+        // Add new years here
+        switch(fieldDiagram.getPictureID()) {
+            case 2019:
+                field = BitmapFactory.decodeResource(activity.getResources(), R.drawable.field2019);
+                break;
+            case 2018:
+                field = BitmapFactory.decodeResource(activity.getResources(), R.drawable.field2018);
+                break;
+            default:
+                field = BitmapFactory.decodeResource(activity.getResources(), R.drawable.field2018);
+        }
 
         // Get drawings
         if(fieldDiagram.getDrawings() != null) {
@@ -720,10 +733,10 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
             Canvas c = new Canvas(mutableBitmap);
             Paint p = new Paint(Paint.FILTER_BITMAP_FLAG);
             c.drawBitmap(drawings, 0, 0, p);
-            layout.setBackground(ContextCompat.getDrawable(activity, R.drawable.field2018));
+            layout.setBackground(new BitmapDrawable(activity.getResources(), field));
             imageView.setImageBitmap(drawings);
             imageView.setAlpha(0.55f);
-        } else imageView.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.field2018));
+        } else imageView.setImageBitmap(field);
 
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override

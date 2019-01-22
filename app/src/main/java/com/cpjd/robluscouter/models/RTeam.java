@@ -5,6 +5,7 @@ import com.cpjd.robluscouter.models.metrics.RCalculation;
 import com.cpjd.robluscouter.models.metrics.RCheckbox;
 import com.cpjd.robluscouter.models.metrics.RChooser;
 import com.cpjd.robluscouter.models.metrics.RCounter;
+import com.cpjd.robluscouter.models.metrics.RFieldDiagram;
 import com.cpjd.robluscouter.models.metrics.RMetric;
 import com.cpjd.robluscouter.models.metrics.RSlider;
 import com.cpjd.robluscouter.models.metrics.RStopwatch;
@@ -229,6 +230,11 @@ public class RTeam implements Serializable {
 
                         if(e instanceof RBoolean && !s.isModified() && s instanceof RBoolean)
                             ((RBoolean) s).setValue(((RBoolean) e).isValue());
+                        else if(e instanceof RFieldDiagram && s instanceof RFieldDiagram && (((RFieldDiagram) e).getPictureID() != ((RFieldDiagram) s).getPictureID())) {
+                            // Remove old picture drawings
+                            ((RFieldDiagram) s).setDrawings(null);
+                            ((RFieldDiagram) s).setPictureID(((RFieldDiagram) e).getPictureID());
+                        }
                         else if(e instanceof RCounter && !s.isModified() && s instanceof RCounter) {
                             ((RCounter)s).setValue(((RCounter)e).getValue());
                         }
