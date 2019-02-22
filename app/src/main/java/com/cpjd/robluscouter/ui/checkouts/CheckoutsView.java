@@ -21,6 +21,7 @@ import com.cpjd.robluscouter.models.RCheckout;
 import com.cpjd.robluscouter.models.RSettings;
 import com.cpjd.robluscouter.models.RSyncSettings;
 import com.cpjd.robluscouter.models.RUI;
+import com.cpjd.robluscouter.notifications.Notify;
 import com.cpjd.robluscouter.sync.bluetooth.BTConnect;
 import com.cpjd.robluscouter.sync.bluetooth.Bluetooth;
 import com.cpjd.robluscouter.sync.cloud.Service;
@@ -76,6 +77,7 @@ public class CheckoutsView extends AppCompatActivity {
         setContentView(R.layout.checkouts_view);
 
         bluetooth = new Bluetooth(CheckoutsView.this);
+        Notify.createNotificationChannel(this);;
 
         // Initialize startup requirements
         Utils.initWidth(this); // sets width for UI, needed by RMetricToUI
