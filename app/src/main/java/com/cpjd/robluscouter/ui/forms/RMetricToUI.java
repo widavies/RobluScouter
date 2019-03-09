@@ -745,7 +745,7 @@ public class RMetricToUI implements ImageGalleryAdapter.ImageThumbnailLoader, Fu
 
                 Intent intent = new Intent(activity, Drawing.class);
                 intent.putExtra("fieldDrawings", fieldDiagram.getDrawings());
-                intent.putExtra("fieldDiagramID", fieldDiagram.getPictureID());
+                intent.putExtra("fieldDiagramID", fieldDiagram.getPictureID());  // represents the year
                 intent.putExtra("fieldDiagram", true);
                 intent.putExtra("position", position);
                 intent.putExtra("ID", fieldDiagram.getID());
